@@ -55,7 +55,7 @@ main{padding:30px clamp(18px,3.2vw,48px) 80px;max-width:1240px;width:100%;min-wi
 .phead{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .monthnav{display:flex;align-items:center;gap:6px}
 .monthpick{position:relative;min-width:168px;text-align:center;padding:7px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line2);font-weight:600;cursor:pointer}
-.monthpick input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.monthpick:hover{border-color:var(--accent)}
 .monthlabel{min-width:168px;text-align:center;font-weight:600;color:var(--text2)}
 .icon-btn{width:34px;height:34px;display:inline-grid;place-items:center;border-radius:10px;border:1px solid var(--line2);background:var(--surface);color:var(--text2);cursor:pointer;font-size:18px;line-height:1}
 .icon-btn:hover:not(:disabled){color:var(--text);border-color:var(--accent)}
@@ -194,7 +194,7 @@ dialog p{color:var(--text2)}
 
 @media (max-width:1040px){
   .hero{grid-template-columns:1fr}.cols{grid-template-columns:1fr}
-  .qa-grid{grid-template-columns:1fr 1fr}.qa-grid .grow{grid-column:1/-1}.qa-grid .btn{grid-column:1/-1}
+  .qa-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.qa-grid .grow{grid-column:1/-1}.qa-grid .btn{grid-column:1/-1}
   .crow{grid-template-columns:minmax(120px,1fr) minmax(70px,1fr) auto;row-gap:6px}.crow .cdelta,.crow .cest{grid-column:auto}
   .crow .cnum{grid-column:1/-1;order:5}
 }
@@ -220,10 +220,22 @@ dialog p{color:var(--text2)}
   .tblg .c-cat{grid-area:cat;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tblg .c-act{grid-area:act}
   /* botón + para cargar un gasto desde cualquier pantalla */
+  .cuota-box{flex:1 1 100%;margin-left:0}
   .fab{display:grid;place-items:center;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;color:#080b12;background:linear-gradient(135deg,#a3a5ff,#6aa8ff);box-shadow:0 12px 30px -8px rgba(139,141,255,.8),0 0 0 1px rgba(255,255,255,.1) inset;cursor:pointer;z-index:20}
   .fab:active{transform:scale(.95)}
   main{padding-bottom:96px}
 }
+/* selector de mes propio */
+.mp-head{display:flex;align-items:center;justify-content:space-between;margin:14px 0}.mp-head b{font-size:20px}
+.mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mp-m{padding:12px 0;border-radius:12px;border:1px solid var(--line2);background:var(--bg2);color:var(--text);cursor:pointer;font-weight:600}
+.mp-m:hover{border-color:var(--accent)}
+.mp-m.hoy{color:#c4c6ff}
+.mp-m.sel{background:rgba(139,141,255,.22);border-color:var(--accent);box-shadow:0 0 16px -4px var(--accent)}
+.cuota-box{flex-wrap:wrap;max-width:100%}.cuota-box .chk{white-space:normal}
+input[type=date]{min-width:0;max-width:100%;display:block;height:42px;-webkit-appearance:none;appearance:none;text-align:left}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+select{height:42px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Cotización de hoy (Ahorros) */
@@ -593,9 +605,16 @@ const ic = k => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke=
 function monthNav() {
   return `<div class="monthnav">
     <button class="icon-btn" data-act="month-prev" aria-label="Mes anterior">‹</button>
-    <label class="monthpick" data-act="month-pick"><span>${monthLabel(UI.month)}</span><input type="month" id="month-input" value="${UI.month}" aria-label="Elegir mes"></label>
+    <button type="button" class="monthpick" data-act="month-pick" aria-label="Elegir mes">${monthLabel(UI.month)}</button>
     <button class="icon-btn" data-act="month-next" aria-label="Mes siguiente">›</button>
   </div>`;
+}
+function mesDialog(year) {
+  const cur = ymOf(HOY);
+  const html = `<h3>Elegir mes</h3><div class="mp-head"><button type="button" class="icon-btn" data-act="mp-year" data-y="${year - 1}" aria-label="Año anterior">‹</button><b>${year}</b><button type="button" class="icon-btn" data-act="mp-year" data-y="${year + 1}" aria-label="Año siguiente">›</button></div>
+    <div class="mp-grid">${MESES_C.map((n, i) => { const ym = year + '-' + pad(i + 1); return `<button type="button" class="mp-m${ym === UI.month ? ' sel' : ''}${ym === cur ? ' hoy' : ''}" data-act="mp-set" data-ym="${ym}"${ym === UI.month ? ' autofocus' : ''}>${cap(n)}</button>`; }).join('')}</div>
+    <div class="dlg-actions"><button type="button" class="btn ghost" data-act="mp-set" data-ym="${cur}">Mes actual</button><button class="btn ghost" value="cancel" formnovalidate>Cerrar</button></div>`;
+  if ($('#dlg').open) $('#dlg-form').innerHTML = html; else openDialog(html);
 }
 const pageHead = (title, right = '') => `<header class="phead"><h1>${title}</h1>${right}</header>`;
 const catOptions = (sel, extraId) => catsOrdenadas().filter(c => !c.archivada || c.id === sel || c.id === extraId)
@@ -1048,7 +1067,9 @@ document.addEventListener('click', e => {
   switch (act) {
     case 'month-prev': UI.month = addMonths(UI.month, -1); render(); break;
     case 'month-next': UI.month = addMonths(UI.month, 1); render(); break;
-    case 'month-pick': { const i = $('#month-input'); if (e.target === i) { try { i.showPicker(); } catch (x) { } } break; }
+    case 'month-pick': mesDialog(+UI.month.slice(0, 4)); break;
+    case 'mp-year': mesDialog(+el.dataset.y); break;
+    case 'mp-set': UI.month = el.dataset.ym; closeDialog(); render(); break;
     case 'go-config': go('config'); break;
     case 'go-cat': UI.g = { cat: id, tag: '', q: '', all: false }; go('gastos'); break;
     case 'go-gastos-mes': e.preventDefault(); UI.g = { cat: '', tag: '', q: '', all: false }; go('gastos'); break;
