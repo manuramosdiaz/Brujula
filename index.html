@@ -247,14 +247,37 @@ const fmtNum = n => { if (n == null || isNaN(n)) return ''; const r = Math.round
 const fmt = n => (n == null || isNaN(n)) ? '—' : (Math.round(n) < 0 ? '−' : '') + '$' + thousands(Math.abs(Math.round(n)));
 const fmtShort = n => { const a = Math.abs(n); if (a >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',').replace(',0', '') + ' M'; if (a >= 1e3) return Math.round(n / 1e3) + ' mil'; return String(Math.round(n)); };
 const fmtPct = (x, d = 0) => (x * 100).toFixed(d).replace('.', ',') + '%';
-const parseMonto = str => {
-  let s = String(str ?? '').trim().replace(/[$\s]/g, '');
+// Número suelto en formato argentino: 1.234,56 / 1234,56 / 1.234 / 12.5
+const parseNum = str => {
+  let s = String(str).trim();
   if (!s) return NaN;
   if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
   else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
   const n = Number(s);
   return isFinite(n) ? n : NaN;
 };
+// Acepta un número o una cuenta simple: 300000/6, 20000+50000, (15000+5000)*2, 1200x3
+const parseMonto = str => {
+  const s = String(str ?? '').replace(/[$\s]/g, '').replace(/^=/, '').replace(/[x×]/gi, '*').replace(/÷/g, '/');
+  if (!s) return NaN;
+  if (!/[+\-*\/()]/.test(s.replace(/^-/, ''))) return parseNum(s);
+  const toks = s.match(/[\d.,]+|[+\-*\/()]|./g);
+  let i = 0;
+  const peek = () => toks[i];
+  const expr = () => { let v = term(); while (peek() === '+' || peek() === '-') { const o = toks[i++]; const r = term(); v = o === '+' ? v + r : v - r; } return v; };
+  const term = () => { let v = unary(); while (peek() === '*' || peek() === '/') { const o = toks[i++]; const r = unary(); v = o === '*' ? v * r : v / r; } return v; };
+  const unary = () => { if (peek() === '-') { i++; return -unary(); } if (peek() === '+') { i++; return unary(); } return atom(); };
+  const atom = () => {
+    const t = toks[i++];
+    if (t === '(') { const v = expr(); if (toks[i++] !== ')') return NaN; return v; }
+    if (t == null || !/^[\d.,]+$/.test(t)) return NaN;
+    return parseNum(t);
+  };
+  const v = expr();
+  return (i === toks.length && isFinite(v)) ? v : NaN;
+};
+// ¿El texto es una cuenta (y no un número solo)?
+const esCuenta = str => /[+\-*\/()x×÷]/.test(String(str ?? '').replace(/[$\s]/g, '').replace(/^[-=]/, ''));
 const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
 const uid = () => 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const slugify = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || uid();
@@ -599,7 +622,7 @@ function viewInicio() {
         <label class="f"><span>Fecha</span><input type="date" name="fecha" value="${esc(q.fecha)}" required></label>
         <label class="f"><span>Categoría</span><select name="cat" required><option value="">Elegí una…</option>${catOptions(q.cat)}</select></label>
         <label class="f grow"><span>Detalle</span><input name="detalle" id="qa-detalle" list="dl-detalles" placeholder="Ej.: Supermercado" value="${esc(q.d || '')}" required></label>
-        <label class="f"><span>Monto</span><input name="monto" id="qa-monto" inputmode="decimal" placeholder="${esc(q.ph || '0')}" value="${esc(q.m || '')}" required></label>
+        <label class="f"><span>Monto</span><input name="monto" id="qa-monto" inputmode="text" autocomplete="off" title="Podés escribir una cuenta: 300000/6 o 20000+50000" placeholder="${esc(q.ph || '0')}" value="${esc(q.m || '')}" required></label>
         <button class="btn primary">Guardar gasto</button>
       </div>
       <div class="qa-tags"><span class="hint">Etiquetas</span>${tagChips(q.tags, 'qa-tag')}
@@ -662,7 +685,7 @@ function gastoDialog(id) {
       <label class="f"><span>Fecha</span><input type="date" name="fecha" value="${esc(g.fecha)}" required></label>
       <label class="f"><span>Categoría</span><select name="cat">${catOptions(g.cat)}</select></label>
       <label class="f full"><span>Detalle</span><input name="detalle" value="${esc(g.detalle)}" required></label>
-      <label class="f"><span>Monto</span><input name="monto" value="${esc(String(g.monto).replace('.', ','))}" inputmode="decimal" required></label>
+      <label class="f"><span>Monto</span><input name="monto" value="${esc(String(g.monto).replace('.', ','))}" inputmode="text" autocomplete="off" required></label>
       <label class="f"><span>Cuota (N° de total)</span><span class="inl"><input name="cn" value="${g.cuota?.n ?? ''}" inputmode="numeric" aria-label="Número de cuota"> / <input name="ct" value="${g.cuota?.total ?? ''}" inputmode="numeric" aria-label="Total de cuotas"></span></label>
     </div>
     <div class="qa-tags"><span class="hint">Etiquetas</span>${DB.etiquetas.map(t => `<label class="chip chk-chip"><input type="checkbox" name="tag" value="${esc(t.id)}" ${tags.includes(t.id) ? 'checked' : ''}><span>${esc(t.nombre)}</span></label>`).join('')}</div>
@@ -731,7 +754,7 @@ function viewIngresos() {
       <div class="qa-grid">
         <label class="f"><span>Tipo</span><select name="tipo">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
         <label class="f grow"><span>Descripción</span><input name="desc" placeholder="Ej.: Comisión de octubre" required></label>
-        <label class="f"><span>Monto</span><input name="monto" inputmode="decimal" placeholder="0" required></label>
+        <label class="f"><span>Monto</span><input name="monto" inputmode="text" autocomplete="off" placeholder="0" required></label>
         <label class="chk pad"><input type="checkbox" name="cobrado" checked> Ya lo cobré</label>
         <button class="btn primary">Agregar</button>
       </div>
@@ -766,8 +789,8 @@ function viewAhorros() {
         <label class="f"><span>Fecha</span><input type="date" name="fecha" value="${HOY}" required></label>
         <label class="f"><span>Destino</span><select name="destino">${dest.map(d => `<option>${esc(d)}</option>`).join('')}</select></label>
         <label class="f grow"><span>Detalle</span><input name="detalle" placeholder="Ej.: CEDEAR SPY" required></label>
-        <label class="f"><span>Monto ($)</span><input name="monto" inputmode="decimal" placeholder="0" required></label>
-        <label class="f"><span>Cotización USD</span><input name="cot" inputmode="decimal" placeholder="${DB.ahorros.length ? fmtNum(DB.ahorros[DB.ahorros.length - 1].cotizacion) : '0'}"></label>
+        <label class="f"><span>Monto ($)</span><input name="monto" inputmode="text" autocomplete="off" placeholder="0" required></label>
+        <label class="f"><span>Cotización USD</span><input name="cot" inputmode="text" placeholder="${DB.ahorros.length ? fmtNum(DB.ahorros[DB.ahorros.length - 1].cotizacion) : '0'}"></label>
         <button class="btn primary">Agregar</button>
       </div></form>
     ${DB.ahorros.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Destino</th><th>Detalle</th><th class="num">Monto ($)</th><th class="num">Cotización</th><th class="num">Equivale a</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="none">Todavía no cargaste ahorros.</p>'}`;
@@ -1044,6 +1067,14 @@ document.addEventListener('submit', e => {
     const nombre = fd.get('nombre').trim(); if (!nombre || DB.config.destinos.includes(nombre)) { toast('Ese destino ya existe.', 'bad'); return; }
     mutate(() => DB.config.destinos.push(nombre)); toast('Destino agregado.');
   }
+});
+// En los campos de monto, al salir se resuelve la cuenta (300000/6 → 50000)
+document.addEventListener('focusout', e => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement) || !['monto', 'cot'].includes(t.name) || !esCuenta(t.value)) return;
+  const n = parseMonto(t.value);
+  if (isNaN(n)) { toast('No pude resolver esa cuenta. Revisala.', 'bad'); return; }
+  t.value = String(Math.round(n * 100) / 100).replace('.', ',');
 });
 document.addEventListener('input', e => {
   const t = e.target;
