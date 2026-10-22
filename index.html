@@ -204,7 +204,34 @@ dialog p{color:var(--text2)}
   #nav{flex-direction:row}#nav a span{display:none}.rail-foot{margin:0 0 0 auto}.brand span{display:none}
   main{padding-top:20px}
 }
+.fab{display:none}
+@media (max-width:780px){
+  /* botones más grandes para el dedo */
+  .icon-btn.sm{width:40px;height:40px;font-size:16px}
+  .tbl .act .icon-btn{margin-left:6px}
+  /* Gastos: cada fila es una tarjeta (el monto siempre a la vista) */
+  .tblg thead{display:none}
+  .tblg,.tblg tbody{display:block}
+  .tblg tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"det det mon" "fec cat act";align-items:center;column-gap:10px;row-gap:2px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .tblg td{display:block;padding:0;border:0}
+  .tblg .c-det{grid-area:det;font-weight:550;overflow-wrap:anywhere}
+  .tblg .c-mon{grid-area:mon;font-weight:650;font-size:16px}
+  .tblg .c-fec{grid-area:fec;font-size:13px}
+  .tblg .c-cat{grid-area:cat;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tblg .c-act{grid-area:act}
+  /* botón + para cargar un gasto desde cualquier pantalla */
+  .fab{display:grid;place-items:center;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;color:#080b12;background:linear-gradient(135deg,#a3a5ff,#6aa8ff);box-shadow:0 12px 30px -8px rgba(139,141,255,.8),0 0 0 1px rgba(255,255,255,.1) inset;cursor:pointer;z-index:20}
+  .fab:active{transform:scale(.95)}
+  main{padding-bottom:96px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Cotización de hoy (Ahorros) */
+.cot-hoy { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin: 0 0 16px; }
+.cot-hoy .f { max-width: 260px; }
+.cot-hoy .hint { margin: 0; color: var(--muted); font-size: 13px; flex: 1 1 260px; }
+.cot-hoy .hint a { color: inherit; text-decoration: underline; }
+.kpis small.hoy { display: block; margin-top: 2px; }
 
 </style>
 </head>
@@ -217,6 +244,7 @@ dialog p{color:var(--text2)}
   </aside>
   <main id="main"></main>
 </div>
+<button class="fab" type="button" data-act="qa-ir" aria-label="Cargar un gasto"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="tip" class="tip" role="presentation"></div>
 <dialog id="dlg"></dialog>
@@ -664,8 +692,8 @@ function viewGastos() {
   if (f.q) { const q = f.q.toLowerCase(); list = list.filter(x => x.g.detalle.toLowerCase().includes(q) || catName(x.g.cat).toLowerCase().includes(q)); }
   list.sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i);
   const total = sumBy(list, x => x.g.monto);
-  const rows = list.map(({ g }) => `<tr><td class="nw">${dmy(g.fecha)}</td><td>${esc(catName(g.cat))}</td><td>${esc(g.detalle)} ${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num">${fmt(g.monto)}</td>
-    <td class="act"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></td></tr>`).join('');
+  const rows = list.map(({ g }) => `<tr><td class="nw c-fec">${dmy(g.fecha)}</td><td class="c-cat">${esc(catName(g.cat))}</td><td class="c-det">${esc(g.detalle)} ${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num c-mon">${fmt(g.monto)}</td>
+    <td class="act c-act"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></td></tr>`).join('');
   return `${pageHead('Gastos', f.all ? '' : monthNav())}
     <div class="filters">
       <label class="f"><span>Categoría</span><select data-filter="cat"><option value="">Todas</option>${catsOrdenadas().map(c => `<option value="${esc(c.id)}"${f.cat === c.id ? ' selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></label>
@@ -674,7 +702,7 @@ function viewGastos() {
       <label class="chk"><input type="checkbox" data-filter="all" ${f.all ? 'checked' : ''}> Todos los meses</label>
     </div>
     <p class="summary">${list.length} ${list.length === 1 ? 'gasto' : 'gastos'} · total <b>${fmt(total)}</b></p>
-    ${list.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Categoría</th><th>Detalle</th><th class="num">Monto</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    ${list.length ? `<div class="tblwrap"><table class="tbl tblg"><thead><tr><th>Fecha</th><th>Categoría</th><th>Detalle</th><th class="num">Monto</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<p class="none">No hay gastos con estos filtros. ${f.all ? '' : 'Probá con «Todos los meses» o cargá uno desde Inicio.'}</p>`}`;
 }
 function gastoDialog(id) {
@@ -781,9 +809,14 @@ function viewAhorros() {
   const acc = dest.map(d => { const it = DB.ahorros.filter(a => a.destino === d); return { d, ars: sumBy(it, a => a.monto), usd: sumBy(it, a => a.cotizacion > 0 ? a.monto / a.cotizacion : 0) }; });
   const rows = [...DB.ahorros].map((a, i) => ({ a, i })).sort((x, y) => y.a.fecha.localeCompare(x.a.fecha) || y.i - x.i).map(({ a }) => `<tr><td class="nw">${dmy(a.fecha)}</td><td>${esc(a.destino)}</td><td>${esc(a.detalle)}</td><td class="num">${fmt(a.monto)}</td><td class="num">${a.cotizacion ? fmtNum(a.cotizacion) : '—'}</td><td class="num">${a.cotizacion > 0 ? 'USD ' + (a.monto / a.cotizacion).toLocaleString('es-AR', { maximumFractionDigits: 0 }) : '—'}</td>
     <td class="act"><button class="icon-btn sm" data-act="a-edit" data-id="${esc(a.id)}" aria-label="Editar ahorro">✎</button><button class="icon-btn sm" data-act="a-del" data-id="${esc(a.id)}" aria-label="Eliminar ahorro">✕</button></td></tr>`).join('');
+  const ch = DB.config.cotHoy, cotH = ch && ch.valor > 0 ? ch.valor : 0;
+  const hoyTxt = usd => cotH && usd > 0 ? `<small class="hoy">hoy ≈ ${fmt(usd * cotH)}</small>` : '';
+  const totUsd = sumBy(acc, x => x.usd), totArs = sumBy(acc, x => x.ars);
   return `${pageHead('Ahorros')}
-    <div class="kpis">${acc.map(x => `<div><span>${esc(x.d)}</span><b>${fmt(x.ars)}</b><small>USD ${x.usd.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small></div>`).join('')}
-      <div class="strong"><span>Total</span><b>${fmt(sumBy(acc, x => x.ars))}</b><small>USD ${sumBy(acc, x => x.usd).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small></div></div>
+    <div class="cot-hoy"><label class="f"><span>Cotización de hoy (dólar BNA)</span><input id="cot-hoy" name="cotHoy" inputmode="text" autocomplete="off" placeholder="Ej.: 1480" value="${cotH ? esc(String(cotH).replace('.', ',')) : ''}"></label>
+      <p class="hint">${cotH ? 'Cargada el ' + dmy(ch.fecha) + '. ' : ''}La cargás vos a mano, mirándola en <a href="https://www.bna.com.ar/" target="_blank" rel="noopener">bna.com.ar</a>. Con ese valor se calcula cuánto valen hoy tus dólares.</p></div>
+    <div class="kpis">${acc.map(x => `<div><span>${esc(x.d)}</span><b>${fmt(x.ars)}</b><small>USD ${x.usd.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small>${hoyTxt(x.usd)}</div>`).join('')}
+      <div class="strong"><span>Total</span><b>${fmt(totArs)}</b><small>USD ${totUsd.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small>${hoyTxt(totUsd)}</div></div>
     <form class="inline-form" data-form="ahorro" autocomplete="off"><h2>Agregar ahorro</h2>
       <div class="qa-grid">
         <label class="f"><span>Fecha</span><input type="date" name="fecha" value="${HOY}" required></label>
@@ -793,7 +826,7 @@ function viewAhorros() {
         <label class="f"><span>Cotización USD</span><input name="cot" inputmode="text" placeholder="${DB.ahorros.length ? fmtNum(DB.ahorros[DB.ahorros.length - 1].cotizacion) : '0'}"></label>
         <button class="btn primary">Agregar</button>
       </div></form>
-    ${DB.ahorros.length ? `<div class="tblwrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Destino</th><th>Detalle</th><th class="num">Monto ($)</th><th class="num">Cotización</th><th class="num">Equivale a</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="none">Todavía no cargaste ahorros.</p>'}`;
+    ${DB.ahorros.length ? `<div class="tblwrap"><table class="tbl tblg"><thead><tr><th>Fecha</th><th>Destino</th><th>Detalle</th><th class="num">Monto ($)</th><th class="num">Cotización</th><th class="num">Equivale a</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="none">Todavía no cargaste ahorros.</p>'}`;
 }
 function ahorroDialog(id) {
   const a = DB.ahorros.find(x => x.id === id); if (!a) return;
@@ -973,6 +1006,11 @@ function snapQA() {
   const fd = new FormData(f);
   UI.qa.fecha = fd.get('fecha') || UI.qa.fecha; UI.qa.cat = fd.get('cat') || ''; UI.qa.d = fd.get('detalle') || ''; UI.qa.m = fd.get('monto') || '';
 }
+function irACarga() {
+  const ya = UI.view === 'inicio';
+  if (!ya) go('inicio');
+  setTimeout(() => { const f = $('form[data-form="qa"]'); if (f) f.scrollIntoView({ block: 'start', behavior: 'smooth' }); const el = $('#qa-detalle'); el && el.focus({ preventScroll: true }); }, ya ? 0 : 150);
+}
 function focusQA(sel = '#qa-detalle') { requestAnimationFrame(() => { const el = $(sel); el && el.focus(); }); }
 function submitQA(form) {
   const fd = new FormData(form);
@@ -1015,6 +1053,7 @@ document.addEventListener('click', e => {
     case 'go-cat': UI.g = { cat: id, tag: '', q: '', all: false }; go('gastos'); break;
     case 'go-gastos-mes': e.preventDefault(); UI.g = { cat: '', tag: '', q: '', all: false }; go('gastos'); break;
     case 'qa-tag': { snapQA(); const t = UI.qa.tags; const k = t.indexOf(id); k >= 0 ? t.splice(k, 1) : t.push(id); render(); refocus = { sel: `.qa .chip[data-id="${id}"]`, pos: 0 }; $(refocus.sel)?.focus(); refocus = null; break; }
+    case 'qa-ir': irACarga(); break;
     case 'g-edit': gastoDialog(id); break;
     case 'g-del': eliminarGasto(id); break;
     case 'i-edit': ingresoDialog(id); break;
@@ -1071,10 +1110,19 @@ document.addEventListener('submit', e => {
 // En los campos de monto, al salir se resuelve la cuenta (300000/6 → 50000)
 document.addEventListener('focusout', e => {
   const t = e.target;
-  if (!(t instanceof HTMLInputElement) || !['monto', 'cot'].includes(t.name) || !esCuenta(t.value)) return;
+  if (!(t instanceof HTMLInputElement) || !['monto', 'cot', 'cotHoy'].includes(t.name) || !esCuenta(t.value)) return;
   const n = parseMonto(t.value);
   if (isNaN(n)) { toast('No pude resolver esa cuenta. Revisala.', 'bad'); return; }
   t.value = String(Math.round(n * 100) / 100).replace('.', ',');
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement) || t.id !== 'cot-hoy') return;
+  const v = t.value.trim();
+  if (!v) { mutate(() => { delete DB.config.cotHoy; }); return; }
+  const n = parseMonto(v);
+  if (!(n > 0)) { toast('Poné una cotización válida.', 'bad'); render(); return; }
+  mutate(() => { DB.config.cotHoy = { valor: n, fecha: HOY }; }); toast('Cotización de hoy guardada.');
 });
 document.addEventListener('input', e => {
   const t = e.target;
