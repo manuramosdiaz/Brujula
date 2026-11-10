@@ -132,7 +132,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 .ctotal{cursor:default;border-bottom:0;border-top:1px solid var(--line2);margin-top:4px;font-weight:650}
 .ctotal:hover{background:none}
 .recent{list-style:none;margin:0;padding:0}
-.recent li{display:grid;grid-template-columns:52px 1fr auto 34px;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.recent li{display:grid;grid-template-columns:52px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
 .recent li:not(:has(button)){grid-template-columns:52px 1fr auto}
 .recent li.nodate{grid-template-columns:1fr auto}
 .recent .t{display:flex;flex-direction:column}.recent .d{color:var(--muted);font-variant-numeric:tabular-nums}
@@ -223,6 +223,15 @@ dialog p{color:var(--text2)}
   .tblg .c-act{grid-area:act}
   /* botón + para cargar un gasto desde cualquier pantalla */
   .cuota-box{flex:1 1 100%;margin-left:0}
+  .tjtbl thead{display:none}
+  .tjtbl,.tjtbl tbody{display:block}
+  .tjtbl tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .tjtbl td{display:block;padding:0;border:0}
+  .tjtbl td:first-child,.tjtbl td.num,.tjtbl td.act{grid-column:1/-1}
+  .tjtbl td.num{text-align:left;color:var(--muted);font-size:13px}
+  .tjtbl td[data-l]::before{content:attr(data-l);display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .tjtbl .inp.day{width:100%}
+  .tjtbl td.act{display:flex;gap:8px}
   .fab{display:grid;place-items:center;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;color:#080b12;background:linear-gradient(135deg,#a3a5ff,#6aa8ff);box-shadow:0 12px 30px -8px rgba(139,141,255,.8),0 0 0 1px rgba(255,255,255,.1) inset;cursor:pointer;z-index:20}
   .fab:active{transform:scale(.95)}
   main{padding-bottom:96px}
@@ -238,6 +247,24 @@ dialog p{color:var(--text2)}
 input[type=date]{min-width:0;max-width:100%;display:block;height:42px;-webkit-appearance:none;appearance:none;text-align:left}
 input[type=date]::-webkit-date-and-time-value{text-align:left}
 select{height:42px}
+
+/* Tarjetas */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.recent .acts{display:flex;gap:6px}
+.tsep{width:1px;height:22px;background:var(--line2);margin:0 4px}
+.tj-box select{height:34px;padding:4px 30px 4px 12px;border-radius:99px;font-size:13px;width:auto}
+.badge.tj{background:rgba(106,168,255,.16);color:#b9d6ff}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.tcard{background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:16px 18px;min-width:0}
+.tc-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.tc-head b{font-size:15px}
+.tc-lab{margin:8px 0 2px;color:var(--text2);font-size:13px}
+.tc-num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tc-sub{margin:2px 0 8px;color:var(--muted);font-size:12.5px}
+.tcard .mrows{border-top:1px solid var(--line);padding-top:8px}
+.tfs{border:1px solid var(--line2);border-radius:12px;padding:10px 14px 14px;margin:12px 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.tfs legend{padding:0 6px;color:var(--text2);font-size:13px}
+.tjtbl .inp.day{width:70px}
+.dgrid .chk.full{grid-column:1/-1;white-space:normal}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Cotización de hoy (Ahorros) */
@@ -246,6 +273,18 @@ select{height:42px}
 .cot-hoy .hint { margin: 0; color: var(--muted); font-size: 13px; flex: 1 1 260px; }
 .cot-hoy .hint a { color: inherit; text-decoration: underline; }
 .kpis small.hoy { display: block; margin-top: 2px; }
+
+@media (max-width:780px){
+  .tsep{display:none}
+  .tgrid{gap:10px}
+  .tcard{padding:10px 14px;border-radius:14px}
+  .tc-head .icon-btn.sm{width:34px;height:34px}
+  .tc-lab{margin:0;font-size:12.5px}
+  .tc-num{font-size:22px;line-height:1.25}
+  .tc-sub{margin:0 0 4px}
+  .tcard .mrows{padding-top:6px}
+  .tcard .mrow.sm{margin-top:0;padding-bottom:2px}
+}
 
 </style>
 </head>
@@ -336,7 +375,7 @@ function emptyDB() {
 function normalizeDB(d) {
   d = d || {}; d.version = 1;
   d.config = Object.assign({ primerMes: ymOf(HOY), destinos: ['Balanz', 'Dólares', 'Otros'] }, d.config || {});
-  for (const k of ['categorias', 'etiquetas', 'gastos', 'ingresos', 'ahorros']) d[k] = Array.isArray(d[k]) ? d[k] : [];
+  for (const k of ['categorias', 'etiquetas', 'gastos', 'ingresos', 'ahorros', 'tarjetas']) d[k] = Array.isArray(d[k]) ? d[k] : [];
   d.presupuestos = d.presupuestos || {}; d.metaAhorro = d.metaAhorro || {};
   return d;
 }
@@ -455,8 +494,8 @@ const csvNum = n => String(n ?? '').replace('.', ',');
 function exportCSV(kind) {
   let head, rows;
   if (kind === 'gastos') {
-    head = ['Fecha', 'Categoría', 'Detalle', 'Monto', 'Etiquetas'];
-    rows = [...DB.gastos].sort((a, b) => a.fecha.localeCompare(b.fecha)).map(g => [dmy(g.fecha), catName(g.cat), g.detalle, csvNum(g.monto), (g.etiquetas || []).map(t => tagById(t)?.nombre || t).join(', ')]);
+    head = ['Fecha', 'Categoría', 'Detalle', 'Monto', 'Etiquetas', 'Tarjeta', 'Cuota'];
+    rows = [...DB.gastos].sort((a, b) => a.fecha.localeCompare(b.fecha)).map(g => [dmy(g.fecha), catName(g.cat), g.detalle, csvNum(g.monto), (g.etiquetas || []).map(t => tagById(t)?.nombre || t).join(', '), g.tarjeta ? tarjetaNombre(g.tarjeta) : '', g.cuota?.n ? g.cuota.n + '/' + g.cuota.total : '']);
   } else if (kind === 'ingresos') {
     head = ['Mes', 'Tipo', 'Descripción', 'Monto', 'Cobrado'];
     rows = [...DB.ingresos].sort((a, b) => a.mes.localeCompare(b.mes)).map(i => [i.mes, i.tipo, i.desc, csvNum(i.monto), i.cobrado ? 'Sí' : 'No']);
@@ -587,9 +626,9 @@ function renderPill() {
 /* ============ Estado de interfaz ============ */
 const UI = {
   view: 'inicio', month: ymOf(HOY),
-  g: { cat: '', tag: '', q: '', all: false },
+  g: { cat: '', tag: '', q: '', all: false, tj: '' },
   pStart: null,
-  qa: { fecha: HOY, cat: '', tags: [], d: '', m: '', ph: '' }
+  qa: { fecha: HOY, cat: '', tags: [], d: '', m: '', ph: '', conTj: false, tj: '' }
 };
 const ICON = {
   inicio: '<path d="M3 11.5 12 4l9 7.5M5.5 10v9h13v-9"/>',
@@ -622,6 +661,7 @@ const pageHead = (title, right = '') => `<header class="phead"><h1>${title}</h1>
 const catOptions = (sel, extraId) => catsOrdenadas().filter(c => !c.archivada || c.id === sel || c.id === extraId)
   .map(c => `<option value="${esc(c.id)}"${c.id === sel ? ' selected' : ''}>${esc(c.nombre)}${c.archivada ? ' (archivada)' : ''}</option>`).join('');
 const tagChips = (selected, act) => DB.etiquetas.map(t => `<button type="button" class="chip" data-act="${act}" data-id="${esc(t.id)}" aria-pressed="${selected.includes(t.id)}">${esc(t.nombre)}</button>`).join('');
+const tjBadge = g => g.tarjeta ? `<span class="badge tj" title="Gasto con tarjeta">💳 ${esc(tarjetaNombre(g.tarjeta) || 'tarjeta')}</span>` : '';
 const tagBadges = ids => (ids || []).map(id => `<span class="badge">${esc(tagById(id)?.nombre || id)}</span>`).join('');
 function barHtml(pct, col, extra = '') { const w = Math.max(0, Math.min(1, pct)) * 100; return `<div class="bar" ${extra}><i style="width:${w}%;--c:${col}"></i></div>`; }
 function emptyState() {
@@ -675,7 +715,9 @@ function viewInicio() {
         <button class="btn primary">Guardar gasto</button>
       </div>
       <div class="qa-tags"><span class="hint">Etiquetas</span>${tagChips(q.tags, 'qa-tag')}
-        ${q.tags.includes('cuota') ? `<span class="cuota-box"><input name="cn" inputmode="numeric" placeholder="N°" aria-label="Número de cuota"> de <input name="ct" inputmode="numeric" placeholder="total" aria-label="Total de cuotas"><label class="chk"><input type="checkbox" name="gen" checked> crear las cuotas siguientes</label></span>` : ''}
+        <span class="tsep" aria-hidden="true"></span><button type="button" class="chip" data-act="qa-tj" aria-pressed="${!!q.conTj}">💳 Con tarjeta</button>
+        ${q.conTj && tarjetasActivas().length ? `<label class="tj-box"><span class="sr">Tarjeta</span><select name="tj" aria-label="Tarjeta">${tarjetasActivas().map(t => `<option value="${esc(t.id)}"${t.id === (q.tj || DB.config.ultTarjeta) ? ' selected' : ''}>${esc(t.nombre)}</option>`).join('')}</select></label>` : ''}
+        ${q.tags.includes('cuota') ? `<span class="cuota-box"><input name="cn" inputmode="numeric" placeholder="N°" aria-label="Número de cuota" value="${esc(q.cn || '')}"> de <input name="ct" inputmode="numeric" placeholder="total" aria-label="Total de cuotas" value="${esc(q.ct || '')}"><label class="chk"><input type="checkbox" name="gen" ${q.gen === false ? '' : 'checked'}> crear las cuotas siguientes</label></span>` : ''}
       </div>
       <datalist id="dl-detalles">${detallesUnicos().map(d => `<option value="${esc(d)}">`).join('')}</datalist>
     </form>`;
@@ -694,10 +736,11 @@ function viewInicio() {
     <div class="cnum"><b>${fmt(T.gastado)}</b><span> / ${fmt(T.presupuesto)}</span></div><div class="cest" style="--c:${est.col}">${T.presupuesto > 0 ? fmtPct(pct) + ' · ' : ''}${est.txt}</div>
     <div class="cdelta">${T.anterior > 0 ? (T.gastado >= T.anterior ? '▲ ' : '▼ ') + fmtPct(Math.abs(T.gastado / T.anterior - 1)) : ''}</div></div>`;
   const recientes = R.gastos.map((g, i) => ({ g, i })).sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i).slice(0, 8).map(x => x.g);
-  const lista = recientes.length ? recientes.map(g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}</small></span><span class="m">${fmt(g.monto)}</span><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button></li>`).join('')
+  const lista = recientes.length ? recientes.map(g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}${g.tarjeta ? ' · 💳 ' + esc(tarjetaNombre(g.tarjeta)) : ''}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}</small></span><span class="m">${fmt(g.monto)}</span><span class="acts"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></span></li>`).join('')
     : `<li class="none">Todavía no hay gastos en ${mes} de ${y}. Cargá el primero arriba.</li>`;
   return `${pageHead('Inicio', monthNav())}
     <section class="hero"><div class="hero-main">${hero}</div>${ahorro}</section>
+    ${tarjetasBox()}
     ${form}
     <section class="block"><h2>Por categoría</h2><div class="clist">${rows}${tot}</div></section>
     <section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul><p class="more"><a href="#/gastos" data-act="go-gastos-mes">Ver todos los gastos del mes</a></p></section>`;
@@ -710,15 +753,17 @@ function viewGastos() {
   if (!f.all) list = list.filter(x => ymOf(x.g.fecha) === UI.month);
   if (f.cat) list = list.filter(x => x.g.cat === f.cat);
   if (f.tag) list = list.filter(x => (x.g.etiquetas || []).includes(f.tag));
+  if (f.tj) list = list.filter(x => f.tj === '-' ? !x.g.tarjeta : x.g.tarjeta === f.tj);
   if (f.q) { const q = f.q.toLowerCase(); list = list.filter(x => x.g.detalle.toLowerCase().includes(q) || catName(x.g.cat).toLowerCase().includes(q)); }
   list.sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i);
   const total = sumBy(list, x => x.g.monto);
-  const rows = list.map(({ g }) => `<tr><td class="nw c-fec">${dmy(g.fecha)}</td><td class="c-cat">${esc(catName(g.cat))}</td><td class="c-det">${esc(g.detalle)} ${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num c-mon">${fmt(g.monto)}</td>
+  const rows = list.map(({ g }) => `<tr><td class="nw c-fec">${dmy(g.fecha)}</td><td class="c-cat">${esc(catName(g.cat))}</td><td class="c-det">${esc(g.detalle)} ${tjBadge(g)}${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num c-mon">${fmt(g.monto)}</td>
     <td class="act c-act"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></td></tr>`).join('');
   return `${pageHead('Gastos', f.all ? '' : monthNav())}
     <div class="filters">
       <label class="f"><span>Categoría</span><select data-filter="cat"><option value="">Todas</option>${catsOrdenadas().map(c => `<option value="${esc(c.id)}"${f.cat === c.id ? ' selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></label>
       <label class="f"><span>Etiqueta</span><select data-filter="tag"><option value="">Todas</option>${DB.etiquetas.map(t => `<option value="${esc(t.id)}"${f.tag === t.id ? ' selected' : ''}>${esc(t.nombre)}</option>`).join('')}</select></label>
+      ${(DB.tarjetas || []).length ? `<label class="f"><span>Tarjeta</span><select data-filter="tj"><option value="">Todas</option><option value="-"${f.tj === '-' ? ' selected' : ''}>Sin tarjeta</option>${DB.tarjetas.map(t => `<option value="${esc(t.id)}"${f.tj === t.id ? ' selected' : ''}>${esc(t.nombre)}</option>`).join('')}</select></label>` : ''}
       <label class="f grow"><span>Buscar</span><input type="search" data-filter="q" id="g-search" value="${esc(f.q)}" placeholder="Detalle o categoría"></label>
       <label class="chk"><input type="checkbox" data-filter="all" ${f.all ? 'checked' : ''}> Todos los meses</label>
     </div>
@@ -735,30 +780,37 @@ function gastoDialog(id) {
       <label class="f"><span>Categoría</span><select name="cat">${catOptions(g.cat)}</select></label>
       <label class="f full"><span>Detalle</span><input name="detalle" value="${esc(g.detalle)}" required></label>
       <label class="f"><span>Monto</span><input name="monto" value="${esc(String(g.monto).replace('.', ','))}" inputmode="text" autocomplete="off" required></label>
+      <label class="f"><span>Tarjeta</span><select name="tj"><option value="">No (efectivo, débito…)</option>${(DB.tarjetas || []).filter(t => !t.archivada || t.id === g.tarjeta).map(t => `<option value="${esc(t.id)}"${t.id === g.tarjeta ? ' selected' : ''}>${esc(t.nombre)}</option>`).join('')}</select></label>
       <label class="f"><span>Cuota (N° de total)</span><span class="inl"><input name="cn" value="${g.cuota?.n ?? ''}" inputmode="numeric" aria-label="Número de cuota"> / <input name="ct" value="${g.cuota?.total ?? ''}" inputmode="numeric" aria-label="Total de cuotas"></span></label>
+      <label class="chk full"><input type="checkbox" name="gen" checked> Crear las cuotas siguientes que falten</label>
     </div>
+    ${(DB.tarjetas || []).length ? '' : '<p class="note">Para marcarlo como gasto con tarjeta, primero cargá tus tarjetas en Configuración.</p>'}
     <div class="qa-tags"><span class="hint">Etiquetas</span>${DB.etiquetas.map(t => `<label class="chip chk-chip"><input type="checkbox" name="tag" value="${esc(t.id)}" ${tags.includes(t.id) ? 'checked' : ''}><span>${esc(t.nombre)}</span></label>`).join('')}</div>
     <div class="dlg-actions"><button class="btn primary" value="save">Guardar cambios</button><button class="btn ghost" value="cancel" formnovalidate>Cancelar</button><button class="btn danger" value="del" formnovalidate>Eliminar</button></div>`,
     {
       onSubmit: (fd, v) => {
-        if (v === 'del') { eliminarGasto(id); return; }
+        if (v === 'del') { setTimeout(() => eliminarGasto(id), 0); return; }
         const monto = parseMonto(fd.get('monto')); if (!(monto > 0)) { toast('El monto tiene que ser un número mayor a cero.', 'bad'); return false; }
+        const cn = parseInt(fd.get('cn')), ct = parseInt(fd.get('ct'));
+        if ((cn || ct) && !(cn > 0 && ct > 0 && cn <= ct)) { toast('Revisá la cuota: el número tiene que ir de 1 al total.', 'bad'); return false; }
+        const tjAntes = g.tarjeta || '', tj = fd.get('tj') || '';
+        let nuevos = [], propagadas = 0;
         mutate(() => {
           g.fecha = fd.get('fecha'); g.cat = fd.get('cat'); g.detalle = fd.get('detalle').trim(); g.monto = monto; g.etiquetas = fd.getAll('tag');
-          const cn = parseInt(fd.get('cn')), ct = parseInt(fd.get('ct'));
-          if (cn && ct) g.cuota = { n: cn, total: ct, grupo: g.cuota?.grupo || slugify(g.detalle.replace(/\d+\/\d+|cuotas?/gi, '')) }; else if (!g.etiquetas.includes('cuota')) delete g.cuota;
+          if (tj) g.tarjeta = tj; else delete g.tarjeta;
+          if (cn && ct) {
+            g.cuota = { n: cn, total: ct, grupo: g.cuota?.grupo || nuevoGrupo(g.detalle) };
+            if (!g.etiquetas.includes('cuota')) g.etiquetas.push('cuota');
+            // Si cambió la tarjeta, se aplica a todas las cuotas de la misma compra
+            if (tj !== tjAntes) cuotasHermanas(g).forEach(x => { if (x !== g) { if (tj) x.tarjeta = tj; else delete x.tarjeta; propagadas++; } });
+            if (fd.get('gen')) { nuevos = generarCuotasFaltantes(g); DB.gastos.push(...nuevos); }
+          } else if (!g.etiquetas.includes('cuota')) delete g.cuota;
         });
-        toast('Cambios guardados.');
+        const extra = [nuevos.length ? `se crearon ${plural(nuevos.length, 'cuota')} siguiente${nuevos.length === 1 ? '' : 's'}` : '', propagadas ? `el cambio de tarjeta se aplicó a ${plural(propagadas, 'cuota')} más` : ''].filter(Boolean).join(' y ');
+        toast('Cambios guardados' + (extra ? ': ' + extra : '') + '.');
       }
     });
 }
-function eliminarGasto(id) {
-  const idx = DB.gastos.findIndex(x => x.id === id); if (idx < 0) return;
-  const g = DB.gastos[idx];
-  mutate(() => DB.gastos.splice(idx, 1));
-  toast(`Gasto eliminado: ${g.detalle}`, '', { label: 'Deshacer', fn: () => mutate(() => DB.gastos.splice(Math.min(idx, DB.gastos.length), 0, g)) });
-}
-
 /* ============ Presupuesto ============ */
 function viewPresupuesto() {
   const start = UI.pStart || addMonths(UI.month, -1);
@@ -859,6 +911,131 @@ function ahorroDialog(id) {
     <label class="f"><span>Cotización USD</span><input name="cot" value="${esc(String(a.cotizacion ?? '').replace('.', ','))}"></label></div>
     <div class="dlg-actions"><button class="btn primary" value="save">Guardar cambios</button><button class="btn ghost" value="cancel" formnovalidate>Cancelar</button></div>`,
     { onSubmit: fd => { const monto = parseMonto(fd.get('monto')); if (!(monto > 0)) { toast('El monto tiene que ser mayor a cero.', 'bad'); return false; } const cot = parseMonto(fd.get('cot')); mutate(() => { Object.assign(a, { fecha: fd.get('fecha'), destino: fd.get('destino'), detalle: fd.get('detalle').trim(), monto, cotizacion: isNaN(cot) ? null : cot }); }); toast('Cambios guardados.'); } });
+}
+
+/* ============ Tarjetas de crédito ============ */
+// Cada tarjeta: { id, nombre, cierre: día, vence: día, ajustes: { 'AAAA-MM': { cierre: 'AAAA-MM-DD', vence: 'AAAA-MM-DD' } } }
+// Un "resumen" se identifica por el mes en que cierra.
+const tarjetasActivas = () => (DB.tarjetas || []).filter(t => !t.archivada);
+const tarjetaById = id => (DB.tarjetas || []).find(t => t.id === id);
+const tarjetaNombre = id => tarjetaById(id)?.nombre || '';
+const mesesEntre = (a, b) => { const [y1, m1] = a.split('-').map(Number), [y2, m2] = b.split('-').map(Number); return (y2 - y1) * 12 + (m2 - m1); };
+const diaEn = (ym, d) => ym + '-' + pad(Math.min(d, daysInMonth(ym)));
+
+function fechasResumen(t, ym, conAjustes = true) {
+  const aj = (conAjustes && t.ajustes?.[ym]) || {};
+  const cierre = aj.cierre || diaEn(ym, t.cierre);
+  let vence = aj.vence;
+  if (!vence) { const vm = t.vence > Number(cierre.slice(8)) ? ymOf(cierre) : addMonths(ymOf(cierre), 1); vence = diaEn(vm, t.vence); }
+  return { ym, cierre, vence };
+}
+// Mes del resumen en el que entra un gasto hecho en esa fecha
+function resumenDeFecha(t, fecha) {
+  let ym = addMonths(ymOf(fecha), -1);
+  for (let i = 0; i < 4; i++) { if (fecha <= fechasResumen(t, ym).cierre) return ym; ym = addMonths(ym, 1); }
+  return ym;
+}
+function estadoTarjeta(t) {
+  // Próximo resumen a pagar: el primero cuyo vencimiento todavía no pasó
+  let ym = addMonths(ymOf(HOY), -2), R = null;
+  for (let i = 0; i < 8; i++) { R = fechasResumen(t, ym); if (R.vence >= HOY) break; ym = addMonths(ym, 1); }
+  const porRes = {};
+  DB.gastos.filter(g => g.tarjeta === t.id).forEach(g => { const r = resumenDeFecha(t, g.fecha); porRes[r] = (porRes[r] || 0) + g.monto; });
+  const prox = { ...R, monto: porRes[R.ym] || 0, cerrado: HOY > R.cierre };
+  const sig = prox.cerrado ? (R2 => ({ ...R2, monto: porRes[R2.ym] || 0 }))(fechasResumen(t, addMonths(R.ym, 1))) : null;
+  const ultimo = sig ? sig.ym : prox.ym;
+  const futuro = sumBy(Object.entries(porRes).filter(([k]) => k > ultimo), ([, v]) => v);
+  return { prox, sig, futuro };
+}
+
+function tarjetasBox() {
+  const ts = tarjetasActivas();
+  if (!ts.length) return `<section class="block tbox"><h2>Tarjetas</h2><p class="none">Cargá tus tarjetas de crédito (con su día de cierre y de vencimiento) en <a href="#/config" data-act="go-config">Configuración</a> y acá vas a ver cuánto debés de cada una.</p></section>`;
+  const cards = ts.map(t => {
+    const { prox, sig, futuro } = estadoTarjeta(t);
+    return `<div class="tcard">
+      <div class="tc-head"><b>${esc(t.nombre)}</b><button class="icon-btn sm" data-act="tj-fechas" data-id="${esc(t.id)}" aria-label="Editar fechas de ${esc(t.nombre)}" title="Editar cierre y vencimiento">✎</button></div>
+      <p class="tc-lab">${prox.cerrado ? 'A pagar · vence el ' + dm(prox.vence) : 'Resumen en curso · vence el ' + dm(prox.vence)}</p>
+      <div class="tc-num">${fmt(prox.monto)}</div>
+      <p class="tc-sub">${prox.cerrado ? 'Cerró el ' + dm(prox.cierre) : 'Cierra el ' + dm(prox.cierre)}</p>
+      <div class="mrows">
+        ${sig ? `<div class="mrow sm"><span>Resumen en curso · cierra ${dm(sig.cierre)}</span><b>${fmt(sig.monto)}</b></div>` : ''}
+        <div class="mrow sm"><span>Resúmenes siguientes (cuotas)</span><b>${fmt(futuro)}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<section class="block tbox"><h2>Tarjetas</h2><div class="tgrid">${cards}</div></section>`;
+}
+
+function tarjetaFechasDialog(id) {
+  const t = tarjetaById(id); if (!t) return;
+  const { prox } = estadoTarjeta(t);
+  const meses = [prox.ym, addMonths(prox.ym, 1)];
+  const filas = meses.map((ym, i) => { const R = fechasResumen(t, ym); return `<fieldset class="tfs"><legend>Resumen que cierra en ${monthLabel(ym).toLowerCase()}</legend>
+      <label class="f"><span>Cierre</span><input type="date" name="c${i}" value="${R.cierre}" required></label>
+      <label class="f"><span>Vencimiento</span><input type="date" name="v${i}" value="${R.vence}" required></label></fieldset>`; }).join('');
+  openDialog(`<h3>Fechas de ${esc(t.nombre)}</h3>
+    <p>Por defecto cierra el día ${t.cierre} y vence el día ${t.vence}. Si este mes el banco las corrió, cambialas acá; solo afecta a ese resumen. Los días por defecto se cambian en Configuración.</p>
+    ${filas}
+    <div class="dlg-actions"><button class="btn primary" value="save">Guardar</button><button class="btn ghost" value="cancel" formnovalidate>Cancelar</button></div>`, {
+    onSubmit: (fd, v) => {
+      if (v !== 'save') return;
+      const vals = meses.map((ym, i) => ({ ym, c: fd.get('c' + i), v: fd.get('v' + i) }));
+      if (vals.some(x => !x.c || !x.v || x.v < x.c)) { toast('El vencimiento tiene que ser después del cierre.', 'bad'); return false; }
+      mutate(() => {
+        t.ajustes = t.ajustes || {};
+        vals.forEach(x => {
+          const D = fechasResumen(t, x.ym, false);
+          if (x.c === D.cierre && x.v === D.vence) delete t.ajustes[x.ym]; else t.ajustes[x.ym] = { cierre: x.c, vence: x.v };
+        });
+      });
+      toast('Fechas guardadas.');
+    }
+  });
+}
+
+/* ============ Cuotas ============ */
+// Cuotas de la misma compra: mismo grupo, mismo total y fechas coherentes con el número de cuota
+function cuotasHermanas(g) {
+  if (!g.cuota?.grupo || !g.cuota.n || !g.cuota.total) return [g];
+  const base = ymOf(g.fecha);
+  return DB.gastos.filter(x => x === g || (x.cuota?.grupo === g.cuota.grupo && x.cuota.total === g.cuota.total && x.cuota.n && mesesEntre(base, ymOf(x.fecha)) === x.cuota.n - g.cuota.n));
+}
+const nuevoGrupo = detalle => slugify(detalle.replace(/\d+\/\d+|cuotas?/gi, '')) + '-' + uid().slice(-5);
+// Crea las cuotas que faltan después de g (sin duplicar las que ya existen). Devuelve las nuevas.
+function generarCuotasFaltantes(g) {
+  const { n, total, grupo } = g.cuota || {};
+  if (!n || !total || n >= total) return [];
+  const existentes = new Set(cuotasHermanas(g).map(x => x.cuota.n));
+  const nuevos = [];
+  for (let k = n + 1; k <= total; k++) {
+    if (existentes.has(k)) continue;
+    const x = { id: uid(), fecha: shiftDate(g.fecha, k - n), cat: g.cat, detalle: /\d+\/\d+/.test(g.detalle) ? g.detalle.replace(/\d+\/\d+/, `${k}/${total}`) : g.detalle, monto: g.monto, etiquetas: [...(g.etiquetas || [])], cuota: { n: k, total, grupo } };
+    if (g.tarjeta) x.tarjeta = g.tarjeta;
+    nuevos.push(x);
+  }
+  return nuevos;
+}
+
+function eliminarGasto(id) {
+  const g = DB.gastos.find(x => x.id === id); if (!g) return;
+  const hs = cuotasHermanas(g);
+  if (hs.length <= 1) return borrarGastos([g], `Gasto eliminado: ${g.detalle}`);
+  const sig = hs.filter(x => x.cuota.n >= g.cuota.n);
+  const opts = [{ label: 'Solo esta cuota', value: 'una' }];
+  if (sig.length > 1 && sig.length < hs.length) opts.push({ label: `Esta y las siguientes (${sig.length})`, value: 'sig' });
+  opts.push({ label: `Todas las cuotas (${hs.length})`, value: 'todas' }, { label: 'Cancelar', value: 'cancel' });
+  choose('¿Qué cuotas borro?', `«${g.detalle}» es la cuota ${g.cuota.n} de ${g.cuota.total}. Hay ${hs.length} cuotas de esta compra cargadas.`, opts).then(v => {
+    if (v === 'una') borrarGastos([g], `Cuota eliminada: ${g.detalle}`);
+    else if (v === 'sig') borrarGastos(sig, `${sig.length} cuotas eliminadas`);
+    else if (v === 'todas') borrarGastos(hs, `${hs.length} cuotas eliminadas`);
+  });
+}
+function borrarGastos(lista, msg) {
+  const set = new Set(lista);
+  const quitados = DB.gastos.map((g, i) => [g, i]).filter(([g]) => set.has(g));
+  mutate(() => { DB.gastos = DB.gastos.filter(g => !set.has(g)); });
+  toast(msg, '', { label: 'Deshacer', fn: () => mutate(() => { quitados.forEach(([g, i]) => DB.gastos.splice(Math.min(i, DB.gastos.length), 0, g)); }) });
 }
 
 /* ============ Análisis ============ */
@@ -992,6 +1169,16 @@ function viewConfig() {
       <div class="row wrap"><button class="btn ghost" data-act="export-json">Exportar todo (JSON)</button><button class="btn ghost" data-act="import-click">Importar JSON</button>
       <button class="btn ghost" data-act="export-csv" data-k="gastos">Gastos (CSV)</button><button class="btn ghost" data-act="export-csv" data-k="ingresos">Ingresos (CSV)</button><button class="btn ghost" data-act="export-csv" data-k="ahorros">Ahorros (CSV)</button></div>
       <p class="note">Los CSV se abren directo en Excel. Importar JSON reemplaza todos los datos actuales.</p></section>
+    <section class="block"><h2>Tarjetas de crédito</h2><p class="note">El día de cierre y de vencimiento se usan para calcular cuánto debés de cada tarjeta en Inicio. Si un mes el banco corre las fechas, ajustalas desde el recuadro de Inicio (✎).</p>
+      ${(DB.tarjetas || []).length ? `<div class="tblwrap"><table class="tbl tjtbl"><thead><tr><th>Tarjeta</th><th>Cierra el día</th><th>Vence el día</th><th class="num">Gastos</th><th></th></tr></thead><tbody>${DB.tarjetas.map(t => `<tr class="${t.archivada ? 'arch' : ''}"><td><input class="inp" data-cfg="tj-name" data-id="${esc(t.id)}" value="${esc(t.nombre)}" aria-label="Nombre de la tarjeta"></td>
+        <td data-l="Cierra el día"><input class="inp day" data-cfg="tj-cierre" data-id="${esc(t.id)}" value="${t.cierre}" inputmode="numeric" aria-label="Día de cierre"></td>
+        <td data-l="Vence el día"><input class="inp day" data-cfg="tj-vence" data-id="${esc(t.id)}" value="${t.vence}" inputmode="numeric" aria-label="Día de vencimiento"></td>
+        <td class="num">${plural(DB.gastos.filter(g => g.tarjeta === t.id).length, 'gasto')}</td>
+        <td class="act"><button class="btn ghost sm" data-act="tj-arch" data-id="${esc(t.id)}">${t.archivada ? 'Restaurar' : 'Archivar'}</button><button class="btn ghost sm" data-act="tj-del" data-id="${esc(t.id)}">Eliminar</button></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <form class="row wrap" data-form="tj-add"><label class="f grow"><span>Nueva tarjeta</span><input class="inp" name="nombre" placeholder="Ej.: Visa Galicia" required></label>
+        <label class="f"><span>Cierra el día</span><input class="inp" name="cierre" inputmode="numeric" placeholder="Ej.: 25" required></label>
+        <label class="f"><span>Vence el día</span><input class="inp" name="vence" inputmode="numeric" placeholder="Ej.: 5" required></label>
+        <button class="btn primary">Agregar tarjeta</button></form></section>
     <section class="block"><h2>Categorías</h2><p class="note">Al renombrar una categoría cambia en todo el historial. Archivarla la oculta de los desplegables sin borrar sus gastos.</p>
       <div class="tblwrap"><table class="tbl"><tbody>${catRows}</tbody></table></div>
       <form class="row wrap" data-form="cat-add"><label class="f grow"><span>Nueva categoría</span><input class="inp" name="nombre" placeholder="Ej.: Mascotas" required></label><button class="btn primary">Agregar categoría</button></form></section>
@@ -1025,7 +1212,7 @@ window.addEventListener('hashchange', route);
 function snapQA() {
   const f = $('form[data-form="qa"]'); if (!f) return;
   const fd = new FormData(f);
-  UI.qa.fecha = fd.get('fecha') || UI.qa.fecha; UI.qa.cat = fd.get('cat') || ''; UI.qa.d = fd.get('detalle') || ''; UI.qa.m = fd.get('monto') || '';
+  UI.qa.fecha = fd.get('fecha') || UI.qa.fecha; UI.qa.cat = fd.get('cat') || ''; UI.qa.d = fd.get('detalle') || ''; UI.qa.m = fd.get('monto') || ''; if (fd.get('tj')) UI.qa.tj = fd.get('tj'); if (f.cn) { UI.qa.cn = f.cn.value; UI.qa.ct = f.ct.value; UI.qa.gen = f.gen.checked; }
 }
 function irACarga() {
   const ya = UI.view === 'inicio';
@@ -1041,26 +1228,30 @@ function submitQA(form) {
   if (!detalle) { toast('Escribí un detalle.', 'bad'); $('#qa-detalle').focus(); return; }
   if (!(monto > 0)) { toast('El monto tiene que ser un número mayor a cero.', 'bad'); $('#qa-monto').focus(); return; }
   const tags = [...UI.qa.tags];
+  const tj = UI.qa.conTj ? (fd.get('tj') || '') : '';
+  if (UI.qa.conTj && !tj) { toast('Marcaste «Con tarjeta» pero no tenés tarjetas cargadas. Agregalas en Configuración.', 'bad'); return; }
   const g = { id: uid(), fecha, cat, detalle, monto, etiquetas: tags };
+  if (tj) g.tarjeta = tj;
   const nuevos = [g];
   if (tags.includes('cuota')) {
-    const cn = parseInt(fd.get('cn')), ct = parseInt(fd.get('ct')), grupo = slugify(detalle.replace(/\d+\/\d+|cuotas?/gi, ''));
+    const cn = parseInt(fd.get('cn')), ct = parseInt(fd.get('ct')), grupo = nuevoGrupo(detalle);
     g.cuota = (cn && ct) ? { n: cn, total: ct, grupo } : { n: null, total: null, grupo };
     if (cn && ct && cn < ct && fd.get('gen')) {
       for (let k = 1; k <= ct - cn; k++) {
         const n = cn + k;
-        nuevos.push({ id: uid(), fecha: shiftDate(fecha, k), cat, detalle: /\d+\/\d+/.test(detalle) ? detalle.replace(/\d+\/\d+/, `${n}/${ct}`) : detalle, monto, etiquetas: [...tags], cuota: { n, total: ct, grupo } });
+        nuevos.push({ id: uid(), fecha: shiftDate(fecha, k), cat, detalle: /\d+\/\d+/.test(detalle) ? detalle.replace(/\d+\/\d+/, `${n}/${ct}`) : detalle, monto, etiquetas: [...tags], cuota: { n, total: ct, grupo }, ...(tj ? { tarjeta: tj } : {}) });
       }
     }
   }
-  Object.assign(UI.qa, { fecha, cat, tags: [], d: '', m: '', ph: '' });
+  Object.assign(UI.qa, { fecha, cat, tags: [], d: '', m: '', ph: '', conTj: false, cn: '', ct: '', gen: true });
+  if (tj) DB.config.ultTarjeta = tj;
   mutate(() => DB.gastos.push(...nuevos));
   const ids = nuevos.map(x => x.id), otroMes = ymOf(fecha) !== UI.month;
-  toast(`Guardado: ${detalle} · ${fmt(monto)}${nuevos.length > 1 ? ` (y ${nuevos.length - 1} cuotas siguientes)` : ''}${otroMes ? ` · quedó en ${monthLabel(ymOf(fecha))}` : ''}`, '',
+  toast(`Guardado: ${detalle} · ${fmt(monto)}${tj ? ' · 💳 ' + tarjetaNombre(tj) : ''}${nuevos.length > 1 ? ` (y ${nuevos.length - 1} cuotas siguientes)` : ''}${otroMes ? ` · quedó en ${monthLabel(ymOf(fecha))}` : ''}`, '',
     { label: 'Deshacer', fn: () => mutate(() => { DB.gastos = DB.gastos.filter(x => !ids.includes(x.id)); }) });
   focusQA();
 }
-function updateChips() { $$('.qa .chip').forEach(c => c.setAttribute('aria-pressed', UI.qa.tags.includes(c.dataset.id))); }
+function updateChips() { $$('.qa .chip[data-act="qa-tag"]').forEach(c => c.setAttribute('aria-pressed', UI.qa.tags.includes(c.dataset.id))); }
 
 /* ============ Eventos ============ */
 document.addEventListener('click', e => {
@@ -1077,6 +1268,15 @@ document.addEventListener('click', e => {
     case 'go-gastos-mes': e.preventDefault(); UI.g = { cat: '', tag: '', q: '', all: false }; go('gastos'); break;
     case 'qa-tag': { snapQA(); const t = UI.qa.tags; const k = t.indexOf(id); k >= 0 ? t.splice(k, 1) : t.push(id); render(); refocus = { sel: `.qa .chip[data-id="${id}"]`, pos: 0 }; $(refocus.sel)?.focus(); refocus = null; break; }
     case 'qa-ir': irACarga(); break;
+    case 'qa-tj': {
+      if (!tarjetasActivas().length) { toast('Primero cargá tus tarjetas en Configuración.', 'bad', { label: 'Ir a Configuración', fn: () => go('config') }); break; }
+      snapQA(); UI.qa.conTj = !UI.qa.conTj; render(); $('.qa .chip[data-act="qa-tj"]')?.focus(); break;
+    }
+    case 'tj-fechas': tarjetaFechasDialog(id); break;
+    case 'tj-arch': { const t = tarjetaById(id); mutate(() => { t.archivada = !t.archivada; }); break; }
+    case 'tj-del': { const t = tarjetaById(id), n = DB.gastos.filter(g => g.tarjeta === id).length;
+      choose('¿Eliminar la tarjeta?', n ? `Tiene ${plural(n, 'gasto')} asociados. Los gastos no se borran: quedan como gastos sin tarjeta. Si solo dejaste de usarla, mejor archivala.` : 'No tiene gastos asociados.', [{ label: 'Eliminar tarjeta', value: 'ok' }, { label: 'Cancelar', value: 'cancel' }])
+        .then(v => { if (v === 'ok') mutate(() => { DB.tarjetas = DB.tarjetas.filter(x => x !== t); DB.gastos.forEach(g => { if (g.tarjeta === id) delete g.tarjeta; }); }); }); break; }
     case 'g-edit': gastoDialog(id); break;
     case 'g-del': eliminarGasto(id); break;
     case 'i-edit': ingresoDialog(id); break;
@@ -1125,6 +1325,12 @@ document.addEventListener('submit', e => {
     const nombre = fd.get('nombre').trim(); if (!nombre) return;
     let id = slugify(nombre); while (tagById(id)) id += '-2';
     mutate(() => DB.etiquetas.push({ id, nombre })); toast('Etiqueta agregada.');
+  } else if (kind === 'tj-add') {
+    const nombre = fd.get('nombre').trim(), cierre = parseInt(fd.get('cierre')), vence = parseInt(fd.get('vence'));
+    if (!nombre) return;
+    if (!(cierre >= 1 && cierre <= 31 && vence >= 1 && vence <= 31)) { toast('Los días de cierre y vencimiento van del 1 al 31.', 'bad'); return; }
+    let id = 'tj-' + slugify(nombre); while (tarjetaById(id)) id += '-2';
+    mutate(() => DB.tarjetas.push({ id, nombre, cierre, vence, ajustes: {} })); toast('Tarjeta agregada.');
   } else if (kind === 'dest-add') {
     const nombre = fd.get('nombre').trim(); if (!nombre || DB.config.destinos.includes(nombre)) { toast('Ese destino ya existe.', 'bad'); return; }
     mutate(() => DB.config.destinos.push(nombre)); toast('Destino agregado.');
@@ -1162,6 +1368,8 @@ document.addEventListener('change', e => {
       if (last) {
         const f = t.closest('form'); f.cat.value = last.cat; UI.qa.cat = last.cat;
         UI.qa.tags = (last.etiquetas || []).filter(x => x !== 'cuota'); UI.qa.ph = fmtNum(last.monto); f.monto.placeholder = UI.qa.ph; updateChips();
+        const tjv = last.tarjeta && tarjetaById(last.tarjeta) && !tarjetaById(last.tarjeta).archivada ? last.tarjeta : '';
+        if (!!tjv !== !!UI.qa.conTj || (tjv && tjv !== UI.qa.tj)) { snapQA(); UI.qa.conTj = !!tjv; if (tjv) UI.qa.tj = tjv; render(); $('#qa-monto')?.focus(); }
       }
     } else if (t.name === 'fecha' || t.name === 'cat') { UI.qa[t.name] = t.value; }
     return;
@@ -1184,6 +1392,8 @@ document.addEventListener('change', e => {
   if (cfg === 'clientId') { Drive.clientId = v; Drive.tc = null; Drive.lsSet('brujula:clientId', v); toast('ID de cliente guardado.'); }
   else if (cfg === 'primerMes') { if (/^\d{4}-\d{2}$/.test(v)) mutate(() => { DB.config.primerMes = v; }); }
   else if (cfg === 'cat-name') { if (!v) { render(); return; } mutate(() => { catById(t.dataset.id).nombre = v; }); toast('Categoría renombrada en todo el historial.'); }
+  else if (cfg === 'tj-name') { if (!v) { render(); return; } mutate(() => { tarjetaById(t.dataset.id).nombre = v; }); }
+  else if (cfg === 'tj-cierre' || cfg === 'tj-vence') { const n = parseInt(v); if (!(n >= 1 && n <= 31)) { toast('Poné un día del 1 al 31.', 'bad'); render(); return; } mutate(() => { tarjetaById(t.dataset.id)[cfg === 'tj-cierre' ? 'cierre' : 'vence'] = n; }); toast('Día guardado.'); }
   else if (cfg === 'tag-name') { if (!v) { render(); return; } mutate(() => { tagById(t.dataset.id).nombre = v; }); }
   else if (cfg === 'dest-name') {
     const i = Number(t.dataset.i), old = DB.config.destinos[i];
