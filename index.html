@@ -66,7 +66,7 @@ main{padding:30px clamp(18px,3.2vw,48px) 80px;max-width:1240px;width:100%;min-wi
 
 /* hero */
 .hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(min(300px,100%),1fr);gap:34px;align-items:stretch;margin-bottom:6px}
-.hero-main{position:relative;padding:6px 0;display:flex;flex-direction:column;justify-content:center}
+.hero-main{position:relative;padding:22px 0 6px;display:flex;flex-direction:column;justify-content:flex-start}
 .hero-main::before{content:"";position:absolute;left:-30px;top:-30px;width:min(520px,calc(100vw - 30px));height:260px;background:radial-gradient(closest-side,rgba(139,141,255,.20),transparent);z-index:-1;filter:blur(8px)}
 .lead{margin:0;color:var(--text2);font-size:15px;font-weight:550}
 .hero-num{font:700 clamp(48px,6.4vw,88px)/1 var(--display);letter-spacing:-.035em;margin:6px 0 10px;text-shadow:0 0 48px rgba(139,141,255,.45)}
@@ -122,13 +122,13 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
 
 /* bloques y listas */
 .block{margin-top:36px}
-.crow{display:grid;grid-template-columns:minmax(150px,210px) minmax(80px,1fr) 250px 170px 84px;gap:18px;align-items:center;padding:13px 8px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px;transition:background .12s}
+.crow{display:grid;grid-template-columns:minmax(150px,210px) minmax(80px,1fr) 230px 170px 170px;gap:18px;align-items:center;padding:13px 8px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px;transition:background .12s}
 .crow:hover{background:rgba(255,255,255,.025)}
 .cname{font-weight:600}.cname em{font-weight:400;color:var(--muted)}
 .cnum{font-variant-numeric:tabular-nums;white-space:nowrap}.cnum span{color:var(--muted)}
 .cest{display:flex;align-items:center;gap:9px;color:var(--text2);font-size:13px}
 .cest::before{content:"";display:inline-block}
-.cdelta{color:var(--muted);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.cdelta{color:var(--muted);font-size:13px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.cdelta.over{color:var(--bad)}
 .ctotal{cursor:default;border-bottom:0;border-top:1px solid var(--line2);margin-top:4px;font-weight:650}
 .ctotal:hover{background:none}
 .recent{list-style:none;margin:0;padding:0}
@@ -285,6 +285,17 @@ select{height:42px}
   .tcard .mrows{padding-top:6px}
   .tcard .mrow.sm{margin-top:0;padding-bottom:2px}
 }
+
+/* Tarjetas: totales y vencimiento cercano */
+.tbox-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 24px;flex-wrap:wrap;margin-bottom:12px}
+.tbox-head h2{margin:0}
+.tbox-tot{display:flex;gap:28px;flex-wrap:wrap}
+.tbox-tot span{display:flex;flex-direction:column;color:var(--muted);font-size:12.5px}
+.tbox-tot b{color:var(--text);font-size:20px;font-variant-numeric:tabular-nums}
+.tcard.urge{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn) inset,0 0 24px -10px var(--warn)}
+.tc-urge{color:var(--warn);font-weight:650}
+.recent.prox .d{color:#c4c6ff}
+@media (max-width:780px){ .tbox-tot{gap:18px} .tbox-tot b{font-size:17px} }
 
 </style>
 </head>
@@ -663,6 +674,7 @@ const catOptions = (sel, extraId) => catsOrdenadas().filter(c => !c.archivada ||
 const tagChips = (selected, act) => DB.etiquetas.map(t => `<button type="button" class="chip" data-act="${act}" data-id="${esc(t.id)}" aria-pressed="${selected.includes(t.id)}">${esc(t.nombre)}</button>`).join('');
 const tjBadge = g => g.tarjeta ? `<span class="badge tj" title="Gasto con tarjeta">💳 ${esc(tarjetaNombre(g.tarjeta) || 'tarjeta')}</span>` : '';
 const tagBadges = ids => (ids || []).map(id => `<span class="badge">${esc(tagById(id)?.nombre || id)}</span>`).join('');
+const difPres = (pres, gast) => `<div class="cdelta${pres > 0 && gast > pres ? ' over' : ''}" title="Diferencia contra tu presupuesto">${pres > 0 ? (gast > pres ? 'te pasaste ' + fmt(gast - pres) : 'quedan ' + fmt(pres - gast)) : ''}</div>`;
 function barHtml(pct, col, extra = '') { const w = Math.max(0, Math.min(1, pct)) * 100; return `<div class="bar" ${extra}><i style="width:${w}%;--c:${col}"></i></div>`; }
 function emptyState() {
   return `<section class="empty">
@@ -723,27 +735,33 @@ function viewInicio() {
     </form>`;
   const rows = R.rows.map(r => {
     const e = estadoPct(r.presupuesto, r.gastado), p = r.presupuesto > 0 ? r.gastado / r.presupuesto : (r.gastado > 0 ? 1 : 0);
-    const d = r.anterior > 0 ? (r.gastado / r.anterior - 1) : null;
     return `<div class="crow" data-act="go-cat" data-id="${esc(r.c.id)}" role="link" tabindex="0">
       <div class="cname">${esc(r.c.nombre)}${r.c.archivada ? ' <em>(archivada)</em>' : ''}</div>
       <div class="cbar">${barHtml(r.presupuesto > 0 ? p : (r.gastado > 0 ? 1 : 0), e.col)}</div>
       <div class="cnum"><b>${fmt(r.gastado)}</b><span> / ${r.presupuesto > 0 ? fmt(r.presupuesto) : 'sin presupuesto'}</span></div>
       <div class="cest" style="--c:${e.col}">${r.presupuesto > 0 ? fmtPct(r.gastado / r.presupuesto) + ' · ' : ''}${e.txt}</div>
-      <div class="cdelta" title="Variación contra el mes anterior">${d == null ? '' : (d >= 0 ? '▲ ' : '▼ ') + fmtPct(Math.abs(d))}</div>
+      ${difPres(r.presupuesto, r.gastado)}
     </div>`;
   }).join('');
   const tot = `<div class="crow ctotal"><div class="cname">Total</div><div class="cbar">${barHtml(pct, est.col)}</div>
     <div class="cnum"><b>${fmt(T.gastado)}</b><span> / ${fmt(T.presupuesto)}</span></div><div class="cest" style="--c:${est.col}">${T.presupuesto > 0 ? fmtPct(pct) + ' · ' : ''}${est.txt}</div>
-    <div class="cdelta">${T.anterior > 0 ? (T.gastado >= T.anterior ? '▲ ' : '▼ ') + fmtPct(Math.abs(T.gastado / T.anterior - 1)) : ''}</div></div>`;
-  const recientes = R.gastos.map((g, i) => ({ g, i })).sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i).slice(0, 8).map(x => x.g);
-  const lista = recientes.length ? recientes.map(g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}${g.tarjeta ? ' · 💳 ' + esc(tarjetaNombre(g.tarjeta)) : ''}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}</small></span><span class="m">${fmt(g.monto)}</span><span class="acts"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></span></li>`).join('')
+    ${difPres(T.presupuesto, T.gastado)}</div>`;
+  const liGasto = g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}${g.tarjeta ? ' · 💳 ' + esc(tarjetaNombre(g.tarjeta)) : ''}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}</small></span><span class="m">${fmt(g.monto)}</span><span class="acts"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></span></li>`;
+  const conIdx = R.gastos.map((g, i) => ({ g, i }));
+  const recientes = conIdx.filter(x => x.g.fecha <= HOY).sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i).slice(0, 8).map(x => x.g);
+  const proximos = conIdx.filter(x => x.g.fecha > HOY).sort((a, b) => a.g.fecha.localeCompare(b.g.fecha) || a.i - b.i).map(x => x.g);
+  const futuroMes = ym > cur;
+  const lista = recientes.length ? recientes.map(liGasto).join('')
     : `<li class="none">Todavía no hay gastos en ${mes} de ${y}. Cargá el primero arriba.</li>`;
+  const bloqueProx = proximos.length ? `<section class="block"><h2>${futuroMes ? 'Gastos ya cargados para ' + mes : 'Próximos en ' + mes}</h2><p class="note">${futuroMes ? 'Cuotas y gastos con fecha en ' + mes + '.' : 'Cuotas y gastos con fecha posterior a hoy. Ya cuentan en el gasto del mes.'}</p><ul class="recent prox">${proximos.slice(0, 12).map(liGasto).join('')}</ul>${proximos.length > 12 ? `<p class="more">y ${plural(proximos.length - 12, 'gasto')} más</p>` : ''}</section>` : '';
   return `${pageHead('Inicio', monthNav())}
     <section class="hero"><div class="hero-main">${hero}</div>${ahorro}</section>
     ${tarjetasBox()}
     ${form}
     <section class="block"><h2>Por categoría</h2><div class="clist">${rows}${tot}</div></section>
-    <section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul><p class="more"><a href="#/gastos" data-act="go-gastos-mes">Ver todos los gastos del mes</a></p></section>`;
+    ${futuroMes ? '' : `<section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul></section>`}
+    ${bloqueProx}
+    <p class="more"><a href="#/gastos" data-act="go-gastos-mes">Ver todos los gastos del mes</a></p>`;
 }
 
 /* ============ Gastos ============ */
@@ -951,20 +969,28 @@ function estadoTarjeta(t) {
 function tarjetasBox() {
   const ts = tarjetasActivas();
   if (!ts.length) return `<section class="block tbox"><h2>Tarjetas</h2><p class="none">Cargá tus tarjetas de crédito (con su día de cierre y de vencimiento) en <a href="#/config" data-act="go-config">Configuración</a> y acá vas a ver cuánto debés de cada una.</p></section>`;
-  const cards = ts.map(t => {
-    const { prox, sig, futuro } = estadoTarjeta(t);
-    return `<div class="tcard">
+  const est = ts.map(t => ({ t, ...estadoTarjeta(t) }));
+  const curYm = ymOf(HOY);
+  const pagarMes = sumBy(est.filter(e => ymOf(e.prox.vence) === curYm), e => e.prox.monto) + sumBy(est.filter(e => e.sig && ymOf(e.sig.vence) === curYm), e => e.sig.monto);
+  const totalDeuda = sumBy(est, e => e.prox.monto + (e.sig?.monto || 0) + e.futuro);
+  const diasA = f => Math.round((new Date(f + 'T12:00') - new Date(HOY + 'T12:00')) / 864e5);
+  const cuando = n => n === 0 ? 'vence hoy' : n === 1 ? 'vence mañana' : 'vence en ' + n + ' días';
+  const cards = est.map(({ t, prox, sig, futuro }) => {
+    const dv = diasA(prox.vence), urge = prox.monto > 0 && dv <= 3;
+    return `<div class="tcard${urge ? ' urge' : ''}">
       <div class="tc-head"><b>${esc(t.nombre)}</b><button class="icon-btn sm" data-act="tj-fechas" data-id="${esc(t.id)}" aria-label="Editar fechas de ${esc(t.nombre)}" title="Editar cierre y vencimiento">✎</button></div>
-      <p class="tc-lab">${prox.cerrado ? 'A pagar · vence el ' + dm(prox.vence) : 'Resumen en curso · vence el ' + dm(prox.vence)}</p>
+      <p class="tc-lab">${prox.cerrado ? 'A pagar' : 'En curso'} · ${urge ? `<b class="tc-urge">${cuando(dv)} (${dm(prox.vence)})</b>` : 'vence el ' + dm(prox.vence)}</p>
       <div class="tc-num">${fmt(prox.monto)}</div>
       <p class="tc-sub">${prox.cerrado ? 'Cerró el ' + dm(prox.cierre) : 'Cierra el ' + dm(prox.cierre)}</p>
       <div class="mrows">
-        ${sig ? `<div class="mrow sm"><span>Resumen en curso · cierra ${dm(sig.cierre)}</span><b>${fmt(sig.monto)}</b></div>` : ''}
-        <div class="mrow sm"><span>Resúmenes siguientes (cuotas)</span><b>${fmt(futuro)}</b></div>
+        ${sig ? `<div class="mrow sm"><span>En curso · cierra ${dm(sig.cierre)}</span><b>${fmt(sig.monto)}</b></div>` : ''}
+        <div class="mrow sm"><span>Cuotas futuras</span><b>${fmt(futuro)}</b></div>
       </div>
     </div>`;
   }).join('');
-  return `<section class="block tbox"><h2>Tarjetas</h2><div class="tgrid">${cards}</div></section>`;
+  return `<section class="block tbox"><div class="tbox-head"><h2>Tarjetas</h2>
+      <div class="tbox-tot"><span>Te queda pagar en ${MESES[Number(curYm.slice(5)) - 1]}<b>${fmt(pagarMes)}</b></span><span>Deuda total con cuotas<b>${fmt(totalDeuda)}</b></span></div></div>
+    <div class="tgrid">${cards}</div></section>`;
 }
 
 function tarjetaFechasDialog(id) {
