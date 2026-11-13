@@ -523,6 +523,22 @@ h2{font-size:18.5px;letter-spacing:-.015em}
 .punt-t{color:var(--text);font-weight:650}
 :root[data-theme="light"] .punt{background:rgba(43,114,207,.10);color:#1f5aa8;border-color:rgba(43,114,207,.4)}
 @media (max-width:780px){ .crow .cnum .punt{display:block;margin:4px 0 0;width:max-content} }
+
+/* Barra del mes con puntuales */
+.hbar{position:relative;padding-top:20px}
+.hbar-track{display:flex;height:14px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.hbar-track i{display:block;height:100%}
+.hbar-track .s-norm{background:var(--c)}
+.hbar-track .s-punt{background:repeating-linear-gradient(135deg,#5fb4ff 0 6px,#2f7fd0 6px 12px)}
+.hbar-mk{position:absolute;top:14px;bottom:-5px;width:2px;background:var(--text);border-radius:2px;transform:translateX(-1px)}
+.hbar-mk em{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:var(--text2);white-space:nowrap;padding-bottom:2px}
+.hbar-leg{list-style:none;display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 0;padding:0;color:var(--text2);font-size:13px}
+.hbar-leg li{display:flex;align-items:center;gap:8px}
+.hbar-leg b{color:var(--text);font-variant-numeric:tabular-nums}
+.hbar-leg i{width:14px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.hbar-leg i.p{background:repeating-linear-gradient(135deg,#5fb4ff 0 4px,#2f7fd0 4px 8px)}
+.hbar-leg i.m{width:2px;height:14px;background:var(--text);margin:0 6px}
+.hbar-mk.der em{left:auto;right:0;transform:none}
 </style>
 </head>
 <body>
@@ -936,11 +952,26 @@ function viewInicio() {
   const queda = T.presupuesto - T.normal, over = queda < 0, pct = T.presupuesto > 0 ? T.normal / T.presupuesto : 0;
   const est = estadoPct(T.presupuesto, T.normal);
   const dias = ym === cur ? daysInMonth(ym) - Number(HOY.slice(8)) : null;
-  const hero = T.presupuesto > 0 ? `
-      <p class="lead">${over ? 'Te pasaste por' : 'Te quedan'}</p>
+  const cerrado = ym < cur;
+  // Barra del mes: gasto normal + puntuales, con una marca donde está el presupuesto
+  const escala = Math.max(T.presupuesto, T.gastado, 1);
+  const barra = T.puntual > 0
+    ? `<div class="hbar" role="img" aria-label="Gasto normal ${fmt(T.normal)}, puntuales ${fmt(T.puntual)}, presupuesto ${fmt(T.presupuesto)}">
+        <div class="hbar-track"><i class="s-norm" style="width:${T.normal / escala * 100}%;--c:${est.col}"></i><i class="s-punt" style="width:${T.puntual / escala * 100}%"></i></div>
+        <span class="hbar-mk${T.presupuesto / escala > 0.85 ? ' der' : ''}" style="left:${T.presupuesto / escala * 100}%"><em>presupuesto</em></span></div>
+      <ul class="hbar-leg"><li><i style="background:${est.col}"></i>Gasto normal <b>${fmt(T.normal)}</b></li><li><i class="p"></i>Puntuales <b>${fmt(T.puntual)}</b></li><li><i class="m"></i>Presupuesto <b>${fmt(T.presupuesto)}</b></li></ul>`
+    : barHtml(pct, est.col, 'role="img" aria-label="Avance del presupuesto: ' + fmtPct(pct) + '"');
+  const hero = T.presupuesto > 0 ? (cerrado ? `
+      <p class="lead">Gastaste en ${mes}</p>
+      <div class="hero-num">${fmt(T.gastado)}</div>
+      <p class="sub">${T.puntual > 0 ? `Gasto normal: ${fmt(T.normal)} de ${fmt(T.presupuesto)} presupuestados (${fmtPct(pct)}). Gastos puntuales, aparte del presupuesto: ${fmt(T.puntual)}.` : `De ${fmt(T.presupuesto)} presupuestados (${fmtPct(pct)}): ${over ? 'te pasaste por ' + fmt(-queda) : 'te sobraron ' + fmt(queda)}.`}</p>
+      ${barra}
+` : `
+      <p class="lead">${over ? 'Te pasaste del presupuesto por' : 'Te quedan del presupuesto'}</p>
       <div class="hero-num ${over ? 'neg' : ''}">${fmt(Math.abs(queda))}</div>
-      <p class="sub">del presupuesto de ${mes}. Gastaste ${fmt(T.normal)} de ${fmt(T.presupuesto)} (${fmtPct(pct)})${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.${T.puntual > 0 ? ` Aparte, ${fmt(T.puntual)} en gastos puntuales, que no cuentan contra el presupuesto. <b class="punt-t">En total salieron ${fmt(T.gastado)}.</b>` : ''}</p>
-      ${barHtml(pct, est.col, 'role="img" aria-label="Avance del presupuesto: ' + fmtPct(pct) + '"')}
+      <p class="sub">Gastaste ${fmt(T.normal)} de ${fmt(T.presupuesto)} (${fmtPct(pct)})${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.${T.puntual > 0 ? ` Aparte llevás <b class="punt-t">${fmt(T.puntual)} en gastos puntuales</b>: en total salieron ${fmt(T.gastado)}.` : ''}</p>
+      ${barra}
+`) + `
       ${diasHtml(ym, R.gastos)}
       ${ym === cur ? `<div class="hstats">
         <div><span title="Lo que te queda del presupuesto, repartido entre hoy y fin de mes">Disponible por día</span><b>${fmt(Math.max(queda, 0) / (dias + 1))}</b></div>
@@ -959,7 +990,7 @@ function viewInicio() {
         <div class="mrow"><span>Gasto proyectado</span><b>−${fmt(T.proyectado)}</b></div>
         ${T.puntual > 0 ? `<div class="mrow sm"><span>Incluye ${fmt(T.puntual)} de gastos puntuales</span></div>` : ''}
         <div class="mrow"><span>Ya ahorraste</span><b>${fmt(S.ahorrado)}</b></div>
-        <div class="mrow total"><span>${falta >= 0 ? 'Te falta ahorrar' : 'Ahorraste de más'}</span><b>${fmt(Math.abs(falta))}</b></div>
+        <div class="mrow total"><span>${S.probable < 0 ? 'El gasto supera al ingreso por' : falta >= 0 ? 'Te falta ahorrar' : 'Ahorraste de más'}</span><b>${fmt(Math.abs(S.probable < 0 ? S.probable : falta))}</b></div>
         ${metaTxt}
       </div>
     </aside>`;
