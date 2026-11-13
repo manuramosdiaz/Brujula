@@ -539,6 +539,21 @@ h2{font-size:18.5px;letter-spacing:-.015em}
 .hbar-leg i.p{background:repeating-linear-gradient(135deg,#5fb4ff 0 4px,#2f7fd0 4px 8px)}
 .hbar-leg i.m{width:2px;height:14px;background:var(--text);margin:0 6px}
 .hbar-mk.der em{left:auto;right:0;transform:none}
+
+/* Tarjetas: detalle de gastos y vista por mes */
+.tcard.click{cursor:pointer;transition:border-color .12s,transform .12s}
+.tcard.click:hover{border-color:hsl(var(--h,248) 70% 65%/.8)}
+.tc-ver{position:relative;z-index:1;margin-top:10px;padding:0;border:0;background:none;color:hsl(var(--h,248) 85% 78%);font:600 13px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+:root[data-theme="light"] .tc-ver{color:hsl(var(--h,248) 60% 38%)}
+.tjd{max-height:58vh;overflow:auto;margin:0 -6px;padding:0 6px}
+.tjd-b{margin-top:16px}
+.tjd-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:6px;border-bottom:1px solid var(--line2)}
+.tjd-h small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.tjd-tot{font:700 18px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tjd .recent li.tjd-mes{display:flex;justify-content:space-between;padding:12px 4px 4px;color:var(--text2);font-size:12.5px;font-weight:600;border-bottom:1px dashed var(--line2)}
+.tjd .recent li.tjd-mes:hover{background:none}
+.tjd .recent li.tjd-mes b{color:var(--text);font-variant-numeric:tabular-nums}
+.tjd{outline:none;border-radius:10px}.tjd:focus-visible{box-shadow:0 0 0 2px var(--line2)}
 </style>
 </head>
 <body>
@@ -1034,7 +1049,7 @@ function viewInicio() {
     : `<li class="none">Todavía no hay gastos en ${mes} de ${y}. Cargá el primero arriba.</li>`;
   return `${pageHead('Inicio', monthNav())}
     <section class="hero"><div class="hero-main">${hero}</div>${ahorro}</section>
-    ${tarjetasBox()}
+    ${tarjetasBox(ym)}
     ${form}
     <section class="block"><h2>Por categoría</h2><div class="clist">${rows}${tot}</div></section>
     <section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul></section>
@@ -1261,16 +1276,61 @@ function estadoTarjeta(t) {
   // Próximo resumen a pagar: el primero cuyo vencimiento todavía no pasó
   let ym = addMonths(ymOf(HOY), -2), R = null;
   for (let i = 0; i < 8; i++) { R = fechasResumen(t, ym); if (R.vence >= HOY) break; ym = addMonths(ym, 1); }
-  const porRes = {}, ajeno = {};
-  DB.gastos.filter(g => g.tarjeta === t.id).forEach(g => { const r = resumenDeGasto(t, g); porRes[r] = (porRes[r] || 0) + enTarjeta(g); ajeno[r] = (ajeno[r] || 0) + (enTarjeta(g) - g.monto); });
-  const prox = { ...R, monto: porRes[R.ym] || 0, ajeno: ajeno[R.ym] || 0, cerrado: HOY > R.cierre };
-  const sig = prox.cerrado ? (R2 => ({ ...R2, monto: porRes[R2.ym] || 0, ajeno: ajeno[R2.ym] || 0 }))(fechasResumen(t, addMonths(R.ym, 1))) : null;
+  const porRes = {}, ajeno = {}, items = {};
+  DB.gastos.filter(g => g.tarjeta === t.id).forEach(g => { const r = resumenDeGasto(t, g); porRes[r] = (porRes[r] || 0) + enTarjeta(g); ajeno[r] = (ajeno[r] || 0) + (enTarjeta(g) - g.monto); (items[r] = items[r] || []).push(g); });
+  const prox = { ...R, monto: porRes[R.ym] || 0, ajeno: ajeno[R.ym] || 0, cerrado: HOY > R.cierre, items: items[R.ym] || [] };
+  const sig = prox.cerrado ? (R2 => ({ ...R2, monto: porRes[R2.ym] || 0, ajeno: ajeno[R2.ym] || 0, items: items[R2.ym] || [] }))(fechasResumen(t, addMonths(R.ym, 1))) : null;
   const ultimo = sig ? sig.ym : prox.ym;
   const futuro = sumBy(Object.entries(porRes).filter(([k]) => k > ultimo), ([, v]) => v);
-  return { prox, sig, futuro };
+  const futuros = Object.keys(items).filter(k => k > ultimo).sort().map(k => ({ ...fechasResumen(t, k), monto: porRes[k], items: items[k] }));
+  return { prox, sig, futuro, futuros };
 }
 
-function tarjetasBox() {
+const TONOS_TJ = [248, 204, 162, 32, 322, 96];
+const tonoTj = t => TONOS_TJ[Math.max(0, DB.tarjetas.indexOf(t)) % TONOS_TJ.length];
+// En un mes que no es el actual: cuánto se gastó con cada tarjeta ese mes (por fecha del gasto)
+function tarjetasMesBox(ym) {
+  const mesTxt = MESES[Number(ym.slice(5)) - 1] + (ym.slice(0, 4) !== HOY.slice(0, 4) ? ' de ' + ym.slice(0, 4) : '');
+  const gs = gastosDe(ym).filter(g => g.tarjeta);
+  const ts = (DB.tarjetas || []).filter(t => !t.archivada || gs.some(g => g.tarjeta === t.id));
+  if (!ts.length) return '';
+  const cards = ts.map(t => { const l = gs.filter(g => g.tarjeta === t.id), tot = sumBy(l, enTarjeta), mio = sumBy(l, g => g.monto);
+    return `<div class="tcard${l.length ? ' click' : ''}" style="--h:${tonoTj(t)}" ${l.length ? `data-act="tj-det" data-id="${esc(t.id)}" data-mes="${ym}"` : ''}>
+      <div class="tc-head"><b><i class="tc-chip" aria-hidden="true"></i>${esc(t.nombre)}</b></div>
+      <p class="tc-lab">${ym > ymOf(HOY) ? 'Ya cargado para ' : 'Gastaste en '}${mesTxt}</p>
+      <div class="tc-num">${fmt(tot)}</div>
+      <p class="tc-sub">${l.length ? plural(l.length, 'gasto') + (tot > mio ? ` · tu parte ${fmt(mio)}` : '') : 'Sin gastos con esta tarjeta'}</p>
+      ${l.length ? `<button type="button" class="tc-ver" data-act="tj-det" data-id="${esc(t.id)}" data-mes="${ym}">Ver los gastos</button>` : ''}
+    </div>`; }).join('');
+  return `<section class="block tbox"><div class="tbox-head"><h2>Tarjetas en ${mesTxt}</h2>
+      <div class="tbox-tot"><span>Total con tarjeta en ${mesTxt}<b>${fmt(sumBy(gs, enTarjeta))}</b></span></div></div>
+    <p class="note">Lo que cargaste a cada tarjeta con fecha de ese mes. Lo que debés hoy está en el mes actual.</p>
+    <div class="tgrid">${cards}</div></section>`;
+}
+// Detalle de una tarjeta: los gastos que suma cada número del recuadro
+function tarjetaDetalleDialog(id, mes) {
+  const t = tarjetaById(id); if (!t) return;
+  const fila = g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}${g.montoTj > 0 ? ' · tu parte ' + fmt(g.monto) : ''}</small></span><span class="m">${fmt(enTarjeta(g))}</span><span class="acts"><button type="button" class="icon-btn sm" data-act="tjd-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button></span></li>`;
+  const bloque = (titulo, sub, items, total) => `<section class="tjd-b"><div class="tjd-h"><div><b>${titulo}</b>${sub ? `<small>${sub}</small>` : ''}</div><b class="tjd-tot">${fmt(total)}</b></div>${items.length ? `<ul class="recent">${[...items].sort((a, b) => a.fecha.localeCompare(b.fecha)).map(fila).join('')}</ul>` : '<p class="none">Sin gastos.</p>'}</section>`;
+  let cuerpo, titulo;
+  if (mes) {
+    const l = gastosDe(mes).filter(g => g.tarjeta === id);
+    titulo = `${esc(t.nombre)} en ${monthLabel(mes).toLowerCase()}`;
+    cuerpo = bloque('Gastos con fecha de ese mes', '', l, sumBy(l, enTarjeta));
+  } else {
+    const e = estadoTarjeta(t);
+    titulo = esc(t.nombre);
+    cuerpo = bloque(e.prox.cerrado ? 'A pagar' : 'Resumen en curso', `${e.prox.cerrado ? 'Cerró' : 'Cierra'} el ${dm(e.prox.cierre)} · vence el ${dm(e.prox.vence)}`, e.prox.items, e.prox.monto)
+      + (e.sig ? bloque('Resumen en curso', `Cierra el ${dm(e.sig.cierre)} · vence el ${dm(e.sig.vence)}`, e.sig.items, e.sig.monto) : '')
+      + (e.futuros.length ? `<section class="tjd-b"><div class="tjd-h"><div><b>Cuotas futuras</b><small>${plural(e.futuros.length, 'resumen').replace('resumens', 'resúmenes')} más adelante</small></div><b class="tjd-tot">${fmt(e.futuro)}</b></div><ul class="recent">${e.futuros.map(r => `<li class="tjd-mes"><span>Resumen que cierra el ${dmy(r.cierre)}</span><b>${fmt(r.monto)}</b></li>` + [...r.items].sort((a, b) => a.fecha.localeCompare(b.fecha)).map(fila).join('')).join('')}</ul></section>` : '');
+  }
+  openDialog(`<h3>${titulo}</h3><p>Estos son los gastos que suma cada número. Si alguno no coincide con el resumen del banco, corregilo con ✎.</p>
+    <div class="tjd">${cuerpo}</div>
+    <div class="dlg-actions"><button class="btn ghost" value="cancel" formnovalidate>Cerrar</button></div>`);
+  $('#dlg').classList.add('wide');
+}
+function tarjetasBox(ym) {
+  if (ym && ym !== ymOf(HOY)) return tarjetasMesBox(ym);
   // Las archivadas se siguen mostrando mientras tengan algo por pagar
   const ts = (DB.tarjetas || []).filter(t => { if (!t.archivada) return true; const e = estadoTarjeta(t); return e.prox.monto + (e.sig?.monto || 0) + e.futuro > 0; });
   if (!ts.length) return `<section class="block tbox"><h2>Tarjetas</h2><p class="none">Cargá tus tarjetas de crédito (con su día de cierre y de vencimiento) en <a href="#/config" data-act="go-config">Configuración</a> y acá vas a ver cuánto debés de cada una.</p></section>`;
@@ -1280,10 +1340,9 @@ function tarjetasBox() {
   const totalDeuda = sumBy(est, e => e.prox.monto + (e.sig?.monto || 0) + e.futuro);
   const diasA = f => Math.round((new Date(f + 'T12:00') - new Date(HOY + 'T12:00')) / 864e5);
   const cuando = n => n === 0 ? 'vence hoy' : n === 1 ? 'vence mañana' : 'vence en ' + n + ' días';
-  const TONOS = [248, 204, 162, 32, 322, 96];
   const cards = est.map(({ t, prox, sig, futuro }) => {
     const dv = diasA(prox.vence), urge = prox.monto > 0 && dv <= 3;
-    return `<div class="tcard${urge ? ' urge' : ''}" style="--h:${TONOS[Math.max(0, DB.tarjetas.indexOf(t)) % TONOS.length]}">
+    return `<div class="tcard click${urge ? ' urge' : ''}" style="--h:${tonoTj(t)}" data-act="tj-det" data-id="${esc(t.id)}">
       <div class="tc-head"><b><i class="tc-chip" aria-hidden="true"></i>${esc(t.nombre)}${t.archivada ? ' <em>(archivada)</em>' : ''}</b><button class="icon-btn sm" data-act="tj-fechas" data-id="${esc(t.id)}" aria-label="Editar fechas de ${esc(t.nombre)}" title="Editar cierre y vencimiento">✎</button></div>
       <p class="tc-lab">${prox.cerrado ? 'A pagar' : 'En curso'} · ${urge ? `<b class="tc-urge">${cuando(dv)} (${dm(prox.vence)})</b>` : 'vence el ' + dm(prox.vence)}</p>
       <div class="tc-num">${fmt(prox.monto)}</div>
@@ -1292,6 +1351,7 @@ function tarjetasBox() {
         ${sig ? `<div class="mrow sm"><span>En curso · cierra ${dm(sig.cierre)}</span><b>${fmt(sig.monto)}</b></div>` : ''}
         <div class="mrow sm"><span>Cuotas futuras</span><b>${fmt(futuro)}</b></div>
       </div>
+      <button type="button" class="tc-ver" data-act="tj-det" data-id="${esc(t.id)}">Ver los gastos</button>
     </div>`;
   }).join('');
   return `<section class="block tbox"><div class="tbox-head"><h2>Tarjetas</h2>
@@ -1665,6 +1725,8 @@ document.addEventListener('click', e => {
     case 'tema': setTema(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'); break;
     case 'qa-div': snapQA(); UI.qa.div = !UI.qa.div; render(); (UI.qa.div ? $('.qa input[name="divn"]') : $('.qa .chip[data-act="qa-div"]'))?.focus(); break;
     case 'tj-fechas': tarjetaFechasDialog(id); break;
+    case 'tj-det': tarjetaDetalleDialog(id, el.dataset.mes || ''); break;
+    case 'tjd-edit': closeDialog(); setTimeout(() => gastoDialog(id), 0); break;
     case 'tj-arch': { const t = tarjetaById(id); mutate(() => { t.archivada = !t.archivada; }); break; }
     case 'tj-del': { const t = tarjetaById(id), n = DB.gastos.filter(g => g.tarjeta === id).length;
       choose('¿Eliminar la tarjeta?', n ? `Tiene ${plural(n, 'gasto')} asociados. Los gastos no se borran: quedan como gastos sin tarjeta. Si solo dejaste de usarla, mejor archivala.` : 'No tiene gastos asociados.', [{ label: 'Eliminar tarjeta', value: 'ok' }, { label: 'Cancelar', value: 'cancel' }])
