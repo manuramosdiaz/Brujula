@@ -939,7 +939,7 @@ function viewInicio() {
   const hero = T.presupuesto > 0 ? `
       <p class="lead">${over ? 'Te pasaste por' : 'Te quedan'}</p>
       <div class="hero-num ${over ? 'neg' : ''}">${fmt(Math.abs(queda))}</div>
-      <p class="sub">del presupuesto de ${mes}. Gastaste ${fmt(T.normal)} de ${fmt(T.presupuesto)} (${fmtPct(pct)})${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.${T.puntual > 0 ? ` Aparte, <b class="punt-t">${fmt(T.puntual)} en gastos puntuales</b>, que no cuentan contra el presupuesto.` : ''}</p>
+      <p class="sub">del presupuesto de ${mes}. Gastaste ${fmt(T.normal)} de ${fmt(T.presupuesto)} (${fmtPct(pct)})${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.${T.puntual > 0 ? ` Aparte, ${fmt(T.puntual)} en gastos puntuales, que no cuentan contra el presupuesto. <b class="punt-t">En total salieron ${fmt(T.gastado)}.</b>` : ''}</p>
       ${barHtml(pct, est.col, 'role="img" aria-label="Avance del presupuesto: ' + fmtPct(pct) + '"')}
       ${diasHtml(ym, R.gastos)}
       ${ym === cur ? `<div class="hstats">
