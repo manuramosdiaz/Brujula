@@ -10,6 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23111724' stroke='%238b8dff' stroke-width='2'/%3E%3Cpath d='M16 6l4 10-4 10-4-10z' fill='%238b8dff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem('brujula:tema')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
 <style>:root{
   color-scheme:dark;
   --bg:#080b12; --bg2:#0c111b; --surface:#111724; --surface2:#182032; --line:#202a3d; --line2:#2c3850;
@@ -353,70 +354,169 @@ select{height:42px}
 .tjtbl select.inp{min-width:170px;height:38px}
 .tjtbl td.ej{color:var(--text2);font-size:13px;white-space:nowrap}
 
-/* ===== Toque estético: instrumento del mes ===== */
+/* ===== Diseño: fondo, títulos, paneles ===== */
+:root{--panel:#0d121c}
 body::after{content:"";position:fixed;right:-340px;top:-360px;width:1000px;height:1000px;border-radius:50%;z-index:-1;pointer-events:none;
-  background:repeating-radial-gradient(circle,transparent 0 58px,rgba(139,141,255,.055) 58px 59px);
+  background:repeating-radial-gradient(circle,transparent 0 58px,rgba(139,141,255,.05) 58px 59px);
   -webkit-mask-image:radial-gradient(closest-side,#000 30%,transparent 100%);mask-image:radial-gradient(closest-side,#000 30%,transparent 100%)}
 h1{font-size:34px;letter-spacing:-.025em}
 h2{font-size:18.5px;letter-spacing:-.015em}
 .block{margin-top:38px}
-.hero-top{display:flex;align-items:center;justify-content:space-between;gap:18px 28px}
-.hero-txt{min-width:0;flex:1 1 300px}
-.hero-main{padding-top:6px}
-.hero-num{font-variant-numeric:tabular-nums}
-.dial{flex:0 0 clamp(190px,19vw,236px)}
-.dial svg{display:block;width:100%;height:auto;overflow:visible}
-.dial .tk{stroke:var(--line2);stroke-width:1.2;stroke-linecap:round}
-.dial .tk.may{stroke:var(--muted);stroke-width:1.6}
-.dial .dl{fill:var(--muted);font:600 9.5px var(--body);font-variant-numeric:tabular-nums}
-.dial path{fill:none;stroke-linecap:round}
-.dial .d-track{stroke:var(--surface2);stroke-width:11}
-.dial .d-track.thin{stroke-width:3.5}
-.dial .d-val{stroke:var(--c);stroke-width:11;filter:drop-shadow(0 0 7px var(--c))}
-.dial .d-time{stroke:#8f9bb8;stroke-width:3.5}
-.dial .d-needle{transform-origin:110px 110px;transform:rotate(var(--a))}
-.dial .d-needle line{stroke:var(--text);stroke-width:2.4;stroke-linecap:round}
-.dial .d-needle circle{fill:var(--bg);stroke:var(--text);stroke-width:2.4}
-.dial .d-pct{fill:var(--text);font:700 25px var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.dial .d-cap{fill:var(--muted);font:500 10.5px var(--body)}
-.d-leg{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;align-items:center;color:var(--text2);font-size:12.5px}
-.d-leg li{display:flex;align-items:center;gap:7px}
-.d-leg i{width:14px;height:4px;border-radius:9px;display:inline-block}.d-leg i.t{background:#8f9bb8}
-@keyframes aguja{from{transform:rotate(135deg)}to{transform:rotate(var(--a))}}
-.boot .dial .d-needle{animation:aguja 1.1s cubic-bezier(.3,1.35,.5,1) both}
-.hstats{margin-top:18px}
-/* Tarjetas con tono propio, como plásticos distintos */
+.hero-main{padding-top:10px}
+.hero-num{font-size:clamp(46px,5.6vw,80px);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hero-main>.bar{height:12px}
+/* Día por día */
+.daystrip{margin-top:22px;padding:14px 16px 10px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
+.ds-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px 14px;flex-wrap:wrap;margin-bottom:10px}
+.ds-head b{font:650 14.5px var(--display)}.ds-head span{color:var(--muted);font-size:12.5px}
+.ds-bars{display:flex;align-items:stretch;gap:3px;height:92px}
+.dy{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;position:relative;border-radius:5px;cursor:default}
+.dy::before{content:"";position:absolute;left:0;right:0;bottom:17px;height:2px;border-radius:2px;background:var(--line)}
+.dy i{display:block;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#a9abff,#6f72e8);position:relative;margin-bottom:0;min-height:0}
+.dy span{height:17px;line-height:19px;text-align:center;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dy.hoy i{background:linear-gradient(180deg,#fff,#c9caff);box-shadow:0 0 14px -2px #a9abff}
+.dy.hoy span{color:var(--text);font-weight:700}
+.dy.hoy::before{background:var(--accent)}
+.dy.fut i{background:none;box-shadow:inset 0 0 0 1.5px rgba(139,141,255,.55)}
+.dy:hover{background:rgba(139,141,255,.08)}
+.hstats{margin-top:14px}
+/* KPIs */
+.kpis b{font-variant-numeric:tabular-nums}
+.kpis small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpis.summary{margin:4px 0 16px}
+.progress{display:flex;align-items:center;gap:14px;margin:12px 0 4px;color:var(--text2);font-size:13px}
+.progress .bar{flex:1 1 200px;max-width:420px}
+.compo{margin:14px 0 6px}
+.compo-bar{display:flex;gap:3px;height:14px}
+.compo-bar i{border-radius:5px;background:linear-gradient(180deg,hsl(var(--h) 75% 68%),hsl(var(--h) 60% 52%));min-width:6px}
+.compo .legend{margin-top:10px}
+/* Tablas dentro de un panel */
+.tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:4px 10px}
+.tbl thead th{font-size:12px;letter-spacing:.01em}
+.tbl tbody tr:last-child td,.tbl tbody tr:last-child th{border-bottom:0}
+.grid th:first-child,.grid td:first-child{background:var(--panel)}
+.tbl tr.grp td{padding:16px 12px 6px;border-bottom:1px solid var(--line2);color:var(--text2);font-size:12.5px;font-weight:600}
+.tbl tr.grp td b{float:right;color:var(--text);font-variant-numeric:tabular-nums;font-weight:650}
+.tbl tr.grp:hover{background:none}
+.tbl tr.grp:first-child td{padding-top:10px}
+.tblg .c-cat{color:var(--text2);white-space:nowrap}
+/* Secciones como paneles en Análisis, Ingresos y Configuración */
+#main[data-view="analisis"] .block,#main[data-view="config"] .block,#main[data-view="ingresos"] .block{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 22px 18px;margin-top:20px}
+#main[data-view="analisis"] .cols{gap:20px}
+#main[data-view="analisis"] .cols .block{margin-top:20px}
+.block .tblwrap{background:none;border:0;padding:0;border-radius:0}
+.chart{max-width:none}
+#main[data-view="analisis"] .chart{max-height:360px}
+/* Tarjetas con tono propio */
 .tcard{position:relative;overflow:hidden;background:linear-gradient(150deg,hsl(var(--h,248) 70% 62%/.17),var(--surface) 58%);border-color:hsl(var(--h,248) 45% 50%/.38)}
 .tcard::after{content:"";position:absolute;right:-46px;top:-46px;width:150px;height:150px;border-radius:50%;border:1px solid hsl(var(--h,248) 70% 70%/.16);box-shadow:0 0 0 22px hsl(var(--h,248) 70% 70%/.045);pointer-events:none}
 .tc-head b{display:flex;align-items:center;gap:9px;min-width:0}
 .tc-chip{flex:none;width:22px;height:16px;border-radius:4px;background:linear-gradient(135deg,hsl(var(--h,248) 80% 78%),hsl(var(--h,248) 60% 52%));box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
 .tc-head .icon-btn{position:relative;z-index:1}
-.tc-num{font-family:var(--display)}
-.tbox-tot b{font-family:var(--display)}
-/* filas y listas: respuesta al pasar el cursor */
+.tc-num,.tbox-tot b{font-family:var(--display)}
 .recent li{transition:background .12s}.recent li:hover{background:rgba(139,141,255,.045)}
 .tbl tbody tr{transition:background .12s}.tbl tbody tr:hover{background:rgba(139,141,255,.045)}
-.qa{box-shadow:0 30px 70px -50px rgba(95,180,255,.5)}
+.qa,.inline-form{box-shadow:0 30px 70px -50px rgba(95,180,255,.5)}
+.tjtbl select.inp,form[data-form="tj-add"] select.inp{padding-top:0;padding-bottom:0;line-height:1.2}
 @media (max-width:780px){
   h1{font-size:28px}
-  .hero-top{flex-direction:column;align-items:stretch;gap:6px}
-  .dial{flex:none;width:min(230px,70%);margin:0 auto}
+  .hero-num{font-size:clamp(40px,12vw,52px)}
+  .ds-bars{gap:2px;height:78px}.dy span{font-size:9.5px}
   .tjtbl td.ej{white-space:normal;grid-column:1/-1}
   .tjtbl select.inp{width:100%;min-width:0}
   body::after{right:-520px;top:-520px}
+  .tblwrap{padding:2px 10px}
+  .tblg tr{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"det mon" "cat act"}
+  .tblg tr.grp{display:block;padding:14px 4px 6px;border-bottom:1px solid var(--line2)}
+  .tblg tr.grp td{padding:0;border:0;display:flex;justify-content:space-between;gap:10px}
+  .tblg tr.grp td b{float:none}
+  #main[data-view="analisis"] .block,#main[data-view="config"] .block,#main[data-view="ingresos"] .block{padding:16px 14px 14px;border-radius:16px}
+  .progress{flex-direction:column;align-items:stretch;gap:6px}.progress .bar{flex:none;max-width:none}
 }
-@media (prefers-reduced-motion:reduce){.boot .dial .d-needle{animation:none}}
-.hero-num{font-size:clamp(40px,4.5vw,64px);white-space:nowrap}
-.hero-top{flex-wrap:wrap}
-.hero-txt{flex:1 1 320px}
-.dial{flex:0 0 clamp(180px,15vw,216px);margin-left:auto}
+.kpis.summary{margin:14px 0 16px}
+#main[data-view="analisis"] .cols:first-of-type .block{margin-top:6px}
 @media (max-width:780px){
-  .hero-top{flex-wrap:nowrap}
-  .hero-txt{flex:none}
-  .hero-num{font-size:clamp(40px,12vw,52px)}
-  .dial{flex:none;width:min(200px,62%);margin:0 auto}
+  .grid tbody th{max-width:112px;white-space:normal;font-size:13px;padding-right:8px;line-height:1.25}
+  .grid .cell{width:82px;font-size:13.5px}
+  .grid thead th{padding-left:4px;padding-right:4px}
 }
-.tjtbl select.inp,form[data-form="tj-add"] select.inp{padding-top:0;padding-bottom:0;line-height:1.2}
+
+/* ===== Botón de tema ===== */
+.rail-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.theme-sw{display:inline-flex;gap:2px;padding:3px;border-radius:99px;border:1px solid var(--line2);background:var(--surface);cursor:pointer;flex:none}
+.theme-sw span{display:grid;place-items:center;width:28px;height:26px;border-radius:99px;color:var(--muted);transition:background .15s,color .15s}
+.theme-sw .s-luna{background:var(--accent);color:#0a0d18}
+:root[data-theme="light"] .theme-sw .s-luna{background:none;color:var(--muted)}
+:root[data-theme="light"] .theme-sw .s-sol{background:var(--accent);color:#fff}
+.theme-sw:hover{border-color:var(--accent)}
+@media (max-width:1040px){
+  #nav a{padding:10px 9px}
+  .rail{gap:6px}
+  .rail-foot{flex-wrap:nowrap;margin-left:auto}
+}
+/* ===== Modo claro ===== */
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f1f2f8; --bg2:#f6f7fb; --surface:#ffffff; --surface2:#e6e9f2; --line:#e2e5ef; --line2:#cfd5e3;
+  --text:#141a2b; --text2:#434d66; --muted:#69748e;
+  --accent:#5a5df0; --accent2:#2b72cf;
+  --ok:#14a114; --warn:#e79f00; --bad:#d03b3b; --bad-text:#c22c2c;
+  --panel:#ffffff;
+}
+:root[data-theme="light"] body::before{background:
+   radial-gradient(900px 520px at 12% -8%,rgba(90,93,240,.16),transparent 62%),
+   radial-gradient(760px 480px at 100% 8%,rgba(43,114,207,.10),transparent 65%),
+   radial-gradient(700px 500px at 60% 115%,rgba(25,158,112,.07),transparent 60%)}
+:root[data-theme="light"] body::after{background:repeating-radial-gradient(circle,transparent 0 58px,rgba(90,93,240,.08) 58px 59px)}
+:root[data-theme="light"] .rail{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.45))}
+:root[data-theme="light"] .brand svg{filter:drop-shadow(0 0 8px rgba(90,93,240,.35))}
+:root[data-theme="light"] #nav a[aria-current="page"]{background:linear-gradient(90deg,rgba(90,93,240,.16),rgba(90,93,240,.03));box-shadow:inset 2px 0 0 var(--accent)}
+:root[data-theme="light"] .hero-main::before{background:radial-gradient(closest-side,rgba(90,93,240,.14),transparent)}
+:root[data-theme="light"] .hero-num{text-shadow:none}
+:root[data-theme="light"] .bar{box-shadow:inset 0 0 0 1px rgba(20,26,43,.04)}
+:root[data-theme="light"] .bar i{box-shadow:none}
+:root[data-theme="light"] .savepanel{background:linear-gradient(165deg,rgba(90,93,240,.10),#fff 45%);box-shadow:0 24px 50px -34px rgba(60,70,140,.45)}
+:root[data-theme="light"] input::placeholder{color:#9aa2b6}
+:root[data-theme="light"] .cell::placeholder{color:#a2aabd}
+:root[data-theme="light"] input,:root[data-theme="light"] select,:root[data-theme="light"] .inp{background:#fff}
+:root[data-theme="light"] .cell{background:transparent}
+:root[data-theme="light"] .btn.primary,:root[data-theme="light"] .fab{color:#fff;background:linear-gradient(135deg,#6a6df3,#3c86ea);box-shadow:0 10px 24px -12px rgba(60,80,200,.8)}
+:root[data-theme="light"] .btn.danger{background:rgba(208,59,59,.08)}
+:root[data-theme="light"] .qa,:root[data-theme="light"] .inline-form{background:#fff;box-shadow:0 20px 44px -34px rgba(40,50,110,.45)}
+:root[data-theme="light"] .chip[aria-pressed="true"],:root[data-theme="light"] .chk-chip:has(input:checked){background:rgba(90,93,240,.13);box-shadow:none}
+:root[data-theme="light"] .crow:hover,:root[data-theme="light"] .tbl tbody tr:hover,:root[data-theme="light"] .recent li:hover,:root[data-theme="light"] .dy:hover{background:rgba(90,93,240,.055)}
+:root[data-theme="light"] .tbl tr.grp:hover{background:none}
+:root[data-theme="light"] .badge{background:rgba(90,93,240,.12);color:#4144c4}
+:root[data-theme="light"] .badge.tj{background:rgba(43,114,207,.12);color:#1f5aa8}
+:root[data-theme="light"] .badge.soft{background:var(--surface2);color:var(--text2)}
+:root[data-theme="light"] .grid td.cur,:root[data-theme="light"] .grid th.cur{background:rgba(90,93,240,.08)}
+:root[data-theme="light"] .toast{background:#fff;box-shadow:0 18px 44px -14px rgba(20,26,43,.35)}
+:root[data-theme="light"] .tip{background:#fff;box-shadow:0 10px 28px -10px rgba(20,26,43,.35)}
+:root[data-theme="light"] dialog{box-shadow:0 30px 80px -20px rgba(20,26,43,.45)}
+:root[data-theme="light"] dialog::backdrop{background:rgba(20,26,43,.35)}
+:root[data-theme="light"] .mp-m{background:#fff}
+:root[data-theme="light"] .mp-m.hoy{color:var(--accent)}
+:root[data-theme="light"] .mp-m.sel{background:rgba(90,93,240,.14);box-shadow:none}
+:root[data-theme="light"] .kpis>div,:root[data-theme="light"] .hstats>div,:root[data-theme="light"] .tblwrap,:root[data-theme="light"] .daystrip,:root[data-theme="light"] .tcard{box-shadow:0 1px 2px rgba(20,26,43,.05),0 12px 26px -22px rgba(40,50,110,.4)}
+:root[data-theme="light"] .block .tblwrap{box-shadow:none}
+:root[data-theme="light"] .kpis>div.strong{background:linear-gradient(160deg,rgba(90,93,240,.12),#fff)}
+:root[data-theme="light"] .dy i{background:linear-gradient(180deg,#8284f6,#5356d9)}
+:root[data-theme="light"] .dy.hoy i{background:#141a2b;box-shadow:none}
+:root[data-theme="light"] .dy.fut i{background:none;box-shadow:inset 0 0 0 1.5px rgba(90,93,240,.6)}
+:root[data-theme="light"] .tcard{background:linear-gradient(150deg,hsl(var(--h,248) 85% 62%/.16),#fff 58%);border-color:hsl(var(--h,248) 50% 55%/.4)}
+:root[data-theme="light"] .tcard.urge{border-color:var(--warn)}
+:root[data-theme="light"] .tc-urge{color:#9a6500}
+:root[data-theme="light"] .pill i,:root[data-theme="light"] .state i,:root[data-theme="light"] .cest::before{box-shadow:none}
+:root[data-theme="light"] .icon-btn{background:#fff}
+:root[data-theme="light"] .chart .tot{fill:var(--text2)}
+@media (max-width:780px){
+  .rail{padding:12px 10px;gap:4px}
+  #nav{gap:1px}
+  #nav a{padding:10px 7px}
+  .brand{padding:0 4px 0 2px}
+  .theme-sw span{width:26px}
+}
+.phead-r{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -424,7 +524,7 @@ h2{font-size:18.5px;letter-spacing:-.015em}
   <aside class="rail">
     <div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13.5" stroke="#8b8dff" stroke-width="1.8"/><path d="M16 6.5l3.6 9.5-3.6 9.5-3.6-9.5z" fill="#8b8dff"/><circle cx="16" cy="16" r="1.8" fill="#080b12"/></svg><span>Brújula</span></div>
     <nav id="nav" aria-label="Secciones"></nav>
-    <div class="rail-foot"><button class="pill" id="pill" type="button" data-act="go-config"></button></div>
+    <div class="rail-foot"><button class="theme-sw" id="tema-btn" type="button" data-act="tema" aria-label="Cambiar a modo claro"><span class="s-sol"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg></span><span class="s-luna"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/></svg></span></button><button class="pill" id="pill" type="button" data-act="go-config"></button></div>
   </aside>
   <main id="main"></main>
 </div>
@@ -795,28 +895,18 @@ const tjBadge = g => g.tarjeta ? `<span class="badge tj" title="Gasto con tarjet
 const tagBadges = ids => (ids || []).map(id => `<span class="badge">${esc(tagById(id)?.nombre || id)}</span>`).join('');
 const difPres = (pres, gast) => `<div class="cdelta${pres > 0 && gast > pres ? ' over' : ''}" title="Diferencia contra tu presupuesto">${pres > 0 ? (gast > pres ? 'te pasaste ' + fmt(gast - pres) : 'quedan ' + fmt(pres - gast)) : ''}</div>`;
 function barHtml(pct, col, extra = '') { const w = Math.max(0, Math.min(1, pct)) * 100; return `<div class="bar" ${extra}><i style="width:${w}%;--c:${col}"></i></div>`; }
-// Instrumento del mes: arco exterior = presupuesto gastado; arco interior fino = días del mes transcurridos
-function dialHtml(pct, col, tiempo) {
-  const cx = 110, cy = 110, A0 = 135, SW = 270, rad = a => a * Math.PI / 180;
-  const pt = (r, f) => { const a = rad(A0 + SW * f); return [(cx + r * Math.cos(a)).toFixed(2), (cy + r * Math.sin(a)).toFixed(2)]; };
-  const arc = (r, f) => { f = Math.max(0.0001, Math.min(1, f)); const [x0, y0] = pt(r, 0), [x1, y1] = pt(r, f); return `M${x0} ${y0}A${r} ${r} 0 ${SW * f > 180 ? 1 : 0} 1 ${x1} ${y1}`; };
-  const f = Math.max(0, Math.min(1, pct));
-  let ticks = '';
-  for (let i = 0; i <= 20; i++) { const may = i % 5 === 0, [x0, y0] = pt(96, i / 20), [x1, y1] = pt(may ? 104 : 100.5, i / 20); ticks += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" class="${may ? 'tk may' : 'tk'}"/>`; }
-  const lab = [[0, '0'], [0.5, '50'], [1, '100']].map(([v, t]) => { const [x, y] = pt(116, v); return `<text x="${x}" y="${(+y + 3.5).toFixed(2)}" text-anchor="middle" class="dl">${t}</text>`; }).join('');
-  const ang = A0 + SW * f;
-  return `<div class="dial" role="img" aria-label="Gastaste ${fmtPct(pct)} del presupuesto${tiempo != null ? ' y pasó el ' + fmtPct(tiempo) + ' del mes' : ''}">
-    <svg viewBox="-14 -6 248 216" style="--c:${col}">
-      ${ticks}${lab}
-      <path d="${arc(84, 1)}" class="d-track"/>
-      <path d="${arc(84, f)}" class="d-val"/>
-      ${tiempo != null ? `<path d="${arc(68, 1)}" class="d-track thin"/><path d="${arc(68, tiempo)}" class="d-time"/>` : ''}
-      <g class="d-needle" style="--a:${ang}deg"><line x1="${cx}" y1="${cy}" x2="${cx + 58}" y2="${cy}"/><circle cx="${cx}" cy="${cy}" r="5.5"/></g>
-      <text x="${cx}" y="${cy + 50}" text-anchor="middle" class="d-pct">${fmtPct(pct)}</text>
-      <text x="${cx}" y="${cy + 66}" text-anchor="middle" class="d-cap">del presupuesto</text>
-    </svg>
-    ${tiempo != null ? `<ul class="d-leg"><li><i style="background:${col}"></i>Gastado ${fmtPct(pct)}</li><li><i class="t"></i>Mes transcurrido ${fmtPct(tiempo)}</li></ul>` : ''}
-  </div>`;
+// El mes día por día: una barra por día con lo gastado; los días que todavía no llegaron (cuotas ya cargadas) van en contorno
+const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const diaSemana = f => DIAS_SEM[new Date(f + 'T12:00').getDay()];
+function diasHtml(ym, gastos) {
+  const n = daysInMonth(ym), cur = ymOf(HOY), hoyD = ym === cur ? Number(HOY.slice(8)) : (ym < cur ? n + 1 : 0);
+  const tot = Array(n).fill(0), cnt = Array(n).fill(0);
+  gastos.forEach(g => { const d = Number(g.fecha.slice(8)) - 1; if (d >= 0 && d < n) { tot[d] += g.monto; cnt[d]++; } });
+  const max = Math.max(...tot, 1), imax = tot.indexOf(Math.max(...tot));
+  const marcas = new Set([1, 5, 10, 15, 20, 25, n]);
+  const bars = tot.map((v, i) => { const d = i + 1, f = ym + '-' + pad(d), k = d === hoyD ? 'hoy' : d > hoyD ? 'fut' : 'pas';
+    return `<div class="dy ${k}" data-tip="<b>${cap(diaSemana(f))} ${d}</b><br>${v ? fmt(v) + ' en ' + plural(cnt[i], 'gasto') : 'Sin gastos'}${k === 'fut' && v ? '<br>Ya cargado, todavía no pasó' : ''}"><i style="height:${v ? Math.max(6, v / max * 100) : 0}%"></i><span>${marcas.has(d) || d === hoyD ? d : ''}</span></div>`; }).join('');
+  return `<div class="daystrip"><div class="ds-head"><b>Día por día</b><span>${tot[imax] > 0 ? `El día más cargado fue el ${imax + 1}: ${fmt(tot[imax])}` : 'Todavía sin gastos'}</span></div><div class="ds-bars" role="img" aria-label="Gasto de cada día del mes">${bars}</div></div>`;
 }
 function emptyState() {
   return `<section class="empty">
@@ -837,13 +927,12 @@ function viewInicio() {
   const queda = T.presupuesto - T.gastado, over = queda < 0, pct = T.presupuesto > 0 ? T.gastado / T.presupuesto : 0;
   const est = estadoPct(T.presupuesto, T.gastado);
   const dias = ym === cur ? daysInMonth(ym) - Number(HOY.slice(8)) : null;
-  const tiempo = ym === cur ? Number(HOY.slice(8)) / daysInMonth(ym) : null;
   const hero = T.presupuesto > 0 ? `
-      <div class="hero-top"><div class="hero-txt">
-        <p class="lead">${over ? 'Te pasaste por' : 'Te quedan'}</p>
-        <div class="hero-num ${over ? 'neg' : ''}">${fmt(Math.abs(queda))}</div>
-        <p class="sub">del presupuesto de ${mes}. Gastaste ${fmt(T.gastado)} de ${fmt(T.presupuesto)}${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.</p>
-      </div>${dialHtml(pct, est.col, tiempo)}</div>
+      <p class="lead">${over ? 'Te pasaste por' : 'Te quedan'}</p>
+      <div class="hero-num ${over ? 'neg' : ''}">${fmt(Math.abs(queda))}</div>
+      <p class="sub">del presupuesto de ${mes}. Gastaste ${fmt(T.gastado)} de ${fmt(T.presupuesto)} (${fmtPct(pct)})${dias != null ? `, y faltan ${dias} ${dias === 1 ? 'día' : 'días'} para fin de mes` : ''}.</p>
+      ${barHtml(pct, est.col, 'role="img" aria-label="Avance del presupuesto: ' + fmtPct(pct) + '"')}
+      ${diasHtml(ym, R.gastos)}
       ${ym === cur ? `<div class="hstats">
         <div><span title="Lo que te queda del presupuesto, repartido entre hoy y fin de mes">Disponible por día</span><b>${fmt(Math.max(queda, 0) / (dias + 1))}</b></div>
         <div><span>Gastaste hoy</span><b>${fmt(sumBy(R.gastos.filter(g => g.fecha === HOY), g => g.monto))}</b></div>
@@ -896,21 +985,17 @@ function viewInicio() {
   const tot = `<div class="crow ctotal"><div class="cname">Total</div><div class="cbar">${barHtml(pct, est.col)}</div>
     <div class="cnum"><b>${fmt(T.gastado)}</b><span> / ${fmt(T.presupuesto)}</span></div><div class="cest" style="--c:${est.col}">${T.presupuesto > 0 ? fmtPct(pct) + ' · ' : ''}${est.txt}</div>
     ${difPres(T.presupuesto, T.gastado)}</div>`;
-  const liGasto = g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}<small>${esc(catName(g.cat))}${g.tarjeta ? ' · 💳 ' + esc(tarjetaNombre(g.tarjeta)) + (g.montoTj > 0 ? ' (total ' + fmt(g.montoTj) + ')' : '') : ''}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}</small></span><span class="m">${fmt(g.monto)}</span><span class="acts"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></span></li>`;
-  const conIdx = R.gastos.map((g, i) => ({ g, i }));
-  const recientes = conIdx.filter(x => x.g.fecha <= HOY).sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i).slice(0, 8).map(x => x.g);
-  const proximos = conIdx.filter(x => x.g.fecha > HOY).sort((a, b) => a.g.fecha.localeCompare(b.g.fecha) || a.i - b.i).map(x => x.g);
-  const futuroMes = ym > cur;
+  const liGasto = g => `<li><span class="d">${dm(g.fecha)}</span><span class="t">${esc(g.detalle)}${g.fecha > HOY ? ' <span class="badge soft" title="Ya está cargado y cuenta en el mes, pero su fecha todavía no llegó">fecha futura</span>' : ''}<small>${esc(catName(g.cat))}${g.tarjeta ? ' · 💳 ' + esc(tarjetaNombre(g.tarjeta)) + (g.montoTj > 0 ? ' (total ' + fmt(g.montoTj) + ')' : '') : ''}${g.cuota?.n ? ' · cuota ' + g.cuota.n + '/' + g.cuota.total : ''}</small></span><span class="m">${fmt(g.monto)}</span><span class="acts"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></span></li>`;
+  // Una sola lista, del más reciente al más viejo. Los que tienen fecha posterior a hoy (por ejemplo cuotas) llevan una marca.
+  const recientes = R.gastos.map((g, i) => ({ g, i })).sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i).slice(0, 10).map(x => x.g);
   const lista = recientes.length ? recientes.map(liGasto).join('')
     : `<li class="none">Todavía no hay gastos en ${mes} de ${y}. Cargá el primero arriba.</li>`;
-  const bloqueProx = proximos.length ? `<section class="block"><h2>${futuroMes ? 'Gastos ya cargados para ' + mes : 'Próximos en ' + mes}</h2><p class="note">${futuroMes ? 'Cuotas y gastos con fecha en ' + mes + '.' : 'Cuotas y gastos con fecha posterior a hoy. Ya cuentan en el gasto del mes.'}</p><ul class="recent prox">${proximos.slice(0, 12).map(liGasto).join('')}</ul>${proximos.length > 12 ? `<p class="more">y ${plural(proximos.length - 12, 'gasto')} más</p>` : ''}</section>` : '';
   return `${pageHead('Inicio', monthNav())}
     <section class="hero"><div class="hero-main">${hero}</div>${ahorro}</section>
     ${tarjetasBox()}
     ${form}
     <section class="block"><h2>Por categoría</h2><div class="clist">${rows}${tot}</div></section>
-    ${futuroMes ? '' : `<section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul></section>`}
-    ${bloqueProx}
+    <section class="block"><h2>Últimos gastos de ${mes}</h2><ul class="recent">${lista}</ul></section>
     <p class="more"><a href="#/gastos" data-act="go-gastos-mes">Ver todos los gastos del mes</a></p>`;
 }
 
@@ -925,7 +1010,10 @@ function viewGastos() {
   if (f.q) { const q = f.q.toLowerCase(); list = list.filter(x => x.g.detalle.toLowerCase().includes(q) || catName(x.g.cat).toLowerCase().includes(q) || tarjetaNombre(x.g.tarjeta).toLowerCase().includes(q)); }
   list.sort((a, b) => b.g.fecha.localeCompare(a.g.fecha) || b.i - a.i);
   const total = sumBy(list, x => x.g.monto);
-  const rows = list.map(({ g }) => `<tr><td class="nw c-fec">${dmy(g.fecha)}</td><td class="c-cat">${esc(catName(g.cat))}</td><td class="c-det">${esc(g.detalle)} ${tjBadge(g)}${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num c-mon">${fmt(g.monto)}</td>
+  const mayor = list.reduce((a, x) => (!a || x.g.monto > a.monto ? x.g : a), null);
+  const porDia = {}; list.forEach(x => { porDia[x.g.fecha] = (porDia[x.g.fecha] || 0) + x.g.monto; });
+  let ultF = '';
+  const rows = list.map(({ g }) => `${g.fecha !== ultF ? (ultF = g.fecha, `<tr class="grp"><td colspan="4"><span>${cap(diaSemana(g.fecha))} ${Number(g.fecha.slice(8))} de ${MESES[Number(g.fecha.slice(5, 7)) - 1]}${f.all ? ' de ' + g.fecha.slice(0, 4) : ''}${g.fecha === HOY ? ' · hoy' : g.fecha > HOY ? ' · fecha futura' : ''}</span><b>${fmt(porDia[g.fecha])}</b></td></tr>`) : ''}<tr><td class="c-cat">${esc(catName(g.cat))}</td><td class="c-det">${esc(g.detalle)} ${tjBadge(g)}${tagBadges(g.etiquetas)}${g.cuota?.n ? `<span class="badge soft">${g.cuota.n}/${g.cuota.total}</span>` : ''}</td><td class="num c-mon">${fmt(g.monto)}</td>
     <td class="act c-act"><button class="icon-btn sm" data-act="g-edit" data-id="${esc(g.id)}" aria-label="Editar ${esc(g.detalle)}">✎</button><button class="icon-btn sm" data-act="g-del" data-id="${esc(g.id)}" aria-label="Eliminar ${esc(g.detalle)}">✕</button></td></tr>`).join('');
   return `${pageHead('Gastos', f.all ? '' : monthNav())}
     <div class="filters">
@@ -935,8 +1023,8 @@ function viewGastos() {
       <label class="f grow"><span>Buscar</span><input type="search" data-filter="q" id="g-search" value="${esc(f.q)}" placeholder="Detalle, categoría o tarjeta"></label>
       <label class="chk"><input type="checkbox" data-filter="all" ${f.all ? 'checked' : ''}> Todos los meses</label>
     </div>
-    <p class="summary">${list.length} ${list.length === 1 ? 'gasto' : 'gastos'} · total <b>${fmt(total)}</b></p>
-    ${list.length ? `<div class="tblwrap"><table class="tbl tblg"><thead><tr><th>Fecha</th><th>Categoría</th><th>Detalle</th><th class="num">Monto</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    <div class="kpis summary"><div class="strong"><span>Total ${f.all ? 'de todos los meses' : 'de ' + monthLabel(UI.month).toLowerCase()}</span><b>${fmt(total)}</b></div><div><span>Cantidad</span><b>${plural(list.length, 'gasto')}</b></div><div><span>Promedio por gasto</span><b>${list.length ? fmt(total / list.length) : '—'}</b></div><div><span>El más grande</span><b>${mayor ? fmt(mayor.monto) : '—'}</b>${mayor ? `<small>${esc(mayor.detalle)}</small>` : ''}</div></div>
+    ${list.length ? `<div class="tblwrap"><table class="tbl tblg"><thead><tr><th>Categoría</th><th>Detalle</th><th class="num">Monto</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<p class="none">No hay gastos con estos filtros. ${f.all ? '' : 'Probá con «Todos los meses» o cargá uno desde Inicio.'}</p>`}`;
 }
 function gastoDialog(id) {
@@ -999,6 +1087,7 @@ function viewPresupuesto() {
   const tot = months.map(m => `<td class="num ${m === cur ? 'cur' : ''}" data-tot="${m}">${fmt(sumBy(cats, c => presupuestoVigente(m, c.id)))}</td>`).join('');
   const meta = months.map(m => `<td class="${m === cur ? 'cur' : ''}"><input class="cell" data-meta="${m}" inputmode="numeric" value="${DB.metaAhorro[m] != null ? fmtNum(DB.metaAhorro[m]) : ''}" placeholder="${metaVigente(m) ? fmtNum(metaVigente(m)) : '—'}" aria-label="Meta de ahorro ${monthLabel(m)}"></td>`).join('');
   return `${pageHead('Presupuesto', `<div class="monthnav"><button class="icon-btn" data-act="p-prev" aria-label="Meses anteriores">‹</button><span class="monthlabel">${monthShort(months[0])} – ${monthShort(months[11])}</span><button class="icon-btn" data-act="p-next" aria-label="Meses siguientes">›</button></div>`)}
+    ${(() => { const R = resumenMes(cur).T; return `<div class="kpis"><div><span>Presupuesto de ${monthLabel(cur).toLowerCase()}</span><b data-kpi="pres">${fmt(R.presupuesto)}</b></div><div><span>Gastado hasta hoy</span><b>${fmt(R.gastado)}</b></div><div class="strong"><span>${R.presupuesto - R.gastado >= 0 ? 'Disponible' : 'Excedido'}</span><b>${fmt(Math.abs(R.presupuesto - R.gastado))}</b></div></div>`; })()}
     <p class="note">Escribí el monto en el mes desde el que rige. Si dejás un mes vacío, hereda el valor del mes anterior (se ve en gris).</p>
     <div class="tblwrap"><table class="tbl grid"><thead><tr><th></th>${head}</tr></thead><tbody>${body}
       <tr class="sumrow"><th scope="row">Total presupuestado</th>${tot}</tr>
@@ -1025,6 +1114,7 @@ function viewIngresos() {
     return `<tr><td>${monthShort(m)}</td><td class="num">${fmt(s)}</td><td class="num">${d == null ? '—' : (d > 0 ? '+' : '') + fmtPct(d, 1)}</td><td class="num">${extra ? fmt(extra) : '—'}</td></tr>`; }).reverse().join('');
   return `${pageHead('Ingresos', monthNav())}
     <div class="kpis"><div><span>Esperado del mes</span><b>${fmt(I.esperado)}</b></div><div><span>Cobrado</span><b>${fmt(I.cobrado)}</b></div><div><span>Falta cobrar</span><b>${fmt(I.pendiente)}</b></div></div>
+    ${I.esperado > 0 ? `<div class="progress"><div class="bar"><i style="width:${Math.min(100, I.cobrado / I.esperado * 100)}%;--c:var(--ok)"></i></div><span>Cobraste el ${fmtPct(I.cobrado / I.esperado)} de lo esperado en ${monthLabel(ym).toLowerCase()}</span></div>` : ''}
     <form class="inline-form" data-form="ingreso" autocomplete="off">
       <h2>Agregar ingreso</h2>
       <div class="qa-grid">
@@ -1065,6 +1155,8 @@ function viewAhorros() {
       <p class="hint">${cotH ? 'Cargada el ' + dmy(ch.fecha) + '. ' : ''}La cargás vos a mano, mirándola en <a href="https://www.bna.com.ar/" target="_blank" rel="noopener">bna.com.ar</a>. Con ese valor se calcula cuánto valen hoy tus dólares.</p></div>
     <div class="kpis">${acc.map(x => `<div><span>${esc(x.d)}</span><b>${fmt(x.ars)}</b><small>USD ${x.usd.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small>${hoyTxt(x.usd)}</div>`).join('')}
       <div class="strong"><span>Total</span><b>${fmt(totArs)}</b><small>USD ${totUsd.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</small>${hoyTxt(totUsd)}</div></div>
+    ${totArs > 0 ? `<div class="compo"><div class="compo-bar" role="img" aria-label="Cómo se reparten tus ahorros">${acc.filter(x => x.ars > 0).map(x => `<i style="flex:${x.ars};--h:${[248, 162, 32, 204, 322, 96][dest.indexOf(x.d) % 6]}" data-tip="<b>${esc(x.d)}</b><br>${fmt(x.ars)} · ${fmtPct(x.ars / totArs)}"></i>`).join('')}</div>
+      <ul class="legend">${acc.filter(x => x.ars > 0).map(x => `<li><i style="background:hsl(${[248, 162, 32, 204, 322, 96][dest.indexOf(x.d) % 6]} 70% 62%)"></i>${esc(x.d)} ${fmtPct(x.ars / totArs)}</li>`).join('')}</ul></div>` : ''}
     <form class="inline-form" data-form="ahorro" autocomplete="off"><h2>Agregar ahorro</h2>
       <div class="qa-grid">
         <label class="f"><span>Fecha</span><input type="date" name="fecha" value="${HOY}" required></label>
@@ -1237,6 +1329,46 @@ function borrarGastos(lista, msg) {
   toast(msg, '', { label: 'Deshacer', fn: () => mutate(() => { quitados.forEach(([g, i]) => DB.gastos.splice(Math.min(i, DB.gastos.length), 0, g)); }) });
 }
 
+/* ============ Informe del mes (para analizar afuera de la app) ============ */
+function informeMes(ym) {
+  const r2 = x => Math.round(x * 100) / 100, pct = (a, b) => b > 0 ? Math.round(a / b * 1000) / 10 : null;
+  const cur = ymOf(HOY), S = situacionMes(ym), R = S.R, I = S.I, ing = I.esperado;
+  const prev = Array.from({ length: 6 }, (_, i) => addMonths(ym, -(i + 1)));
+  const gastoCat = (m, id) => sumBy(gastosDe(m).filter(g => g.cat === id), g => g.monto);
+  const porCategoria = R.rows.filter(r => r.gastado > 0 || r.presupuesto > 0).map(r => {
+    const ant = {}; prev.forEach(m => { ant[m] = r2(gastoCat(m, r.c.id)); });
+    const conDatos = prev.slice(0, 3).filter(m => gastosDe(m).length);
+    return { categoria: r.c.nombre, gastado: r2(r.gastado), presupuesto: r2(r.presupuesto), cantidadDeGastos: R.gastos.filter(g => g.cat === r.c.id).length,
+      pctDelIngreso: pct(r.gastado, ing), pctDelGastoTotal: pct(r.gastado, R.T.gastado),
+      promedioUltimos3Meses: conDatos.length ? r2(sumBy(conDatos, m => gastoCat(m, r.c.id)) / conDatos.length) : null, mesesAnteriores: ant };
+  }).sort((a, b) => b.gastado - a.gastado);
+  const conTag = t => r2(sumBy(R.gastos.filter(g => (g.etiquetas || []).includes(t)), g => g.monto));
+  const futuras = {}; DB.gastos.filter(g => g.cuota?.n && ymOf(g.fecha) > ym).forEach(g => { const k = (g.cuota.grupo || g.detalle) + '|' + g.cuota.total; const f = futuras[k] = futuras[k] || { detalle: g.detalle.replace(/\d+\/\d+/, '').replace(/cuotas?/i, '').trim() || g.detalle, categoria: catName(g.cat), tarjeta: tarjetaNombre(g.tarjeta) || null, cuotasQueFaltan: 0, montoPorCuota: r2(g.monto), totalQueFalta: 0, ultimaCuota: g.fecha }; f.cuotasQueFaltan++; f.totalQueFalta = r2(f.totalQueFalta + g.monto); if (g.fecha > f.ultimaCuota) f.ultimaCuota = g.fecha; });
+  const dest = DB.config.destinos || [];
+  return {
+    app: 'Brújula', tipo: 'informe-mensual', version: 1, generadoEl: HOY, mes: ym, mesCerrado: ym < cur, diaDeCorte: ym === cur ? HOY : null,
+    notas: ['Montos en pesos argentinos.', '"monto" es la parte propia del gasto (la que cuenta para el presupuesto). Si el gasto se divide con otra persona, "totalEnTarjeta" es lo que se cobra en la tarjeta.', 'Los gastos con fecha posterior a "generadoEl" son cuotas o gastos ya cargados que todavía no ocurrieron.', 'El presupuesto lo define el usuario y todavía está en calibración.'],
+    ingresos: { esperado: r2(I.esperado), cobrado: r2(I.cobrado), faltaCobrar: r2(I.pendiente), detalle: I.items.map(i => ({ tipo: TIPOS[i.tipo] || i.tipo, descripcion: i.desc || '', monto: r2(i.monto), cobrado: !!i.cobrado })) },
+    resumen: { gastoTotal: r2(R.T.gastado), presupuestoTotal: r2(R.T.presupuesto), pctDelIngresoGastado: pct(R.T.gastado, ing), gastoProyectadoSegunPresupuesto: r2(R.T.proyectado), ahorroProbable: r2(S.probable), ahorradoEnElMes: r2(S.ahorrado), metaDeAhorro: r2(S.meta), cantidadDeGastos: R.gastos.length },
+    porCategoria,
+    porEtiqueta: { fijo: conTag('fijo'), cuota: conTag('cuota'), suscripcion: conTag('suscripcion'), sinEtiqueta: r2(sumBy(R.gastos.filter(g => !(g.etiquetas || []).length), g => g.monto)) },
+    historial: [...prev].reverse().concat(ym).map(m => ({ mes: m, ingresos: r2(ingresosMes(m).esperado), gastos: r2(sumBy(gastosDe(m), g => g.monto)), ahorro: r2(sumBy(ahorrosDe(m), a => a.monto)) })),
+    tarjetas: (DB.tarjetas || []).map(t => { const e = estadoTarjeta(t); return { nombre: t.nombre, archivada: !!t.archivada, gastadoEnElMes: r2(sumBy(R.gastos.filter(g => g.tarjeta === t.id), enTarjeta)),
+      proximoResumen: { cierre: e.prox.cierre, vence: e.prox.vence, cerrado: e.prox.cerrado, monto: r2(e.prox.monto), parteDeOtros: r2(e.prox.ajeno) },
+      resumenEnCurso: e.sig ? { cierre: e.sig.cierre, vence: e.sig.vence, monto: r2(e.sig.monto) } : null, cuotasFuturas: r2(e.futuro) }; }),
+    cuotasPendientes: Object.values(futuras).sort((a, b) => b.totalQueFalta - a.totalQueFalta),
+    ahorros: { acumuladoEnPesos: r2(sumBy(DB.ahorros, a => a.monto)), acumuladoEnUSD: r2(sumBy(DB.ahorros, a => a.cotizacion > 0 ? a.monto / a.cotizacion : 0)), cotizacionDeHoy: DB.config.cotHoy?.valor || null,
+      porDestino: dest.map(d => ({ destino: d, pesos: r2(sumBy(DB.ahorros.filter(a => a.destino === d), a => a.monto)) })).filter(x => x.pesos > 0),
+      delMes: ahorrosDe(ym).map(a => ({ fecha: a.fecha, destino: a.destino, detalle: a.detalle, monto: r2(a.monto), cotizacion: a.cotizacion || null })) },
+    gastos: [...R.gastos].sort((a, b) => a.fecha.localeCompare(b.fecha)).map(g => ({ fecha: g.fecha, categoria: catName(g.cat), detalle: g.detalle, monto: r2(g.monto), etiquetas: (g.etiquetas || []).map(t => tagById(t)?.nombre || t), tarjeta: tarjetaNombre(g.tarjeta) || null, cuota: g.cuota?.n ? g.cuota.n + '/' + g.cuota.total : null, totalEnTarjeta: g.montoTj > 0 ? r2(g.montoTj) : null }))
+  };
+}
+function descargarInforme() {
+  const ym = UI.month, inf = informeMes(ym);
+  if (!inf.gastos.length && !inf.ingresos.detalle.length) { toast(`No hay gastos ni ingresos cargados en ${monthLabel(ym).toLowerCase()}.`, 'bad'); return; }
+  download(`brujula-informe-${ym}.json`, JSON.stringify(inf, null, 1));
+  toast(`Informe de ${monthLabel(ym).toLowerCase()} descargado${inf.mesCerrado ? '' : ' (mes en curso, hasta hoy)'}.`);
+}
 /* ============ Análisis ============ */
 const SERIES = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#9085e9', '#e66767'];
 const RESTO = '#74809a';
@@ -1324,9 +1456,11 @@ function viewAnalisis() {
   DB.gastos.filter(g => g.cuota?.n && g.cuota?.total && g.fecha <= HOY).forEach(g => { const k = g.cuota.grupo; if (!grupos[k] || g.cuota.n > grupos[k].cuota.n) grupos[k] = g; });
   const cuotas = Object.values(grupos).filter(g => g.cuota.total > g.cuota.n).map(g => ({ g, rest: g.cuota.total - g.cuota.n, tot: (g.cuota.total - g.cuota.n) * g.monto }));
   const cuotasHtml = cuotas.length ? cuotas.map(c => `<li class="nodate"><span class="t">${esc(c.g.detalle.replace(/\d+\/\d+/, '').replace(/cuotas?/i, '').trim() || c.g.detalle)}<small>cuota ${c.g.cuota.n} de ${c.g.cuota.total}</small></span><span class="m">${c.rest} × ${fmt(c.g.monto)} = <b>${fmt(c.tot)}</b></span></li>`).join('') + `<li class="sumli nodate"><span class="t">Todavía por pagar en cuotas</span><span class="m"><b>${fmt(sumBy(cuotas, c => c.tot))}</b></span></li>` : '<li class="none">No hay cuotas en curso con número y total cargados.</li>';
-  return `${pageHead('Análisis', monthNav())}
-    <section class="block"><h2>Gastos por mes y categoría</h2>${stack.html}</section>
-    <section class="block"><h2>Ingresos, gastos y ahorro</h2>${chartFlujo(months)}</section>
+  return `${pageHead('Análisis', `<div class="phead-r"><button class="btn ghost sm" data-act="informe" title="Baja un archivo con el resumen y los gastos del mes elegido, para analizarlo afuera de la app">Descargar informe del mes</button>${monthNav()}</div>`)}
+    <div class="cols">
+      <section class="block"><h2>Gastos por mes y categoría</h2>${stack.html}</section>
+      <section class="block"><h2>Ingresos, gastos y ahorro</h2>${chartFlujo(months)}</section>
+    </div>
     <div class="cols">
       <section class="block"><h2>En qué se fue ${MESES[Number(ym.slice(5)) - 1]}</h2>${catRows || '<p class="none">Sin gastos este mes.</p>'}</section>
       <section class="block"><h2>Fijos, cuotas y suscripciones</h2>${tagHtml || '<p class="none">Sin gastos este mes.</p>'}<p class="note">Un gasto con varias etiquetas se cuenta en cada una.</p></section>
@@ -1367,7 +1501,7 @@ function viewConfig() {
         <li>Pegá el ID de cliente acá arriba y tocá «Conectar con Drive».</li></ol><p class="note">Los nombres de los menús de Google pueden cambiar con el tiempo.</p></details>
     </section>
     <section class="block"><h2>Copias de seguridad</h2>
-      <div class="row wrap"><button class="btn ghost" data-act="export-json">Exportar todo (JSON)</button><button class="btn ghost" data-act="import-click">Importar JSON</button>
+      <div class="row wrap"><button class="btn ghost" data-act="export-json">Exportar todo (JSON)</button><button class="btn ghost" data-act="informe">Informe de ${monthLabel(UI.month).toLowerCase()}</button><button class="btn ghost" data-act="import-click">Importar JSON</button>
       <button class="btn ghost" data-act="export-csv" data-k="gastos">Gastos (CSV)</button><button class="btn ghost" data-act="export-csv" data-k="ingresos">Ingresos (CSV)</button><button class="btn ghost" data-act="export-csv" data-k="ahorros">Ahorros (CSV)</button></div>
       <p class="note">Los CSV se abren directo en Excel. Importar JSON reemplaza todos los datos actuales.</p></section>
     <section class="block"><h2>Tarjetas de crédito</h2><p class="note">Cargá el día de cierre, el día de vencimiento y si ese vencimiento cae en el mismo mes del cierre o en el siguiente. La columna «Así queda este mes» te muestra las fechas completas para que controles. Si un mes el banco las corre, ajustalas desde el recuadro de Inicio (✎).</p>
@@ -1400,7 +1534,7 @@ const VIEWS = { inicio: viewInicio, gastos: viewGastos, presupuesto: viewPresupu
 let refocus = null, fabIO = null;
 function render() {
   const main = $('#main');
-  const sy = main.scrollTop;
+  const sy = main.scrollTop; main.dataset.view = UI.view;
   main.innerHTML = (!HAS_DATA && UI.view !== 'config') ? emptyState() : VIEWS[UI.view]();
   $$('#nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === UI.view ? 'page' : 'false'));
   renderPill();
@@ -1486,6 +1620,7 @@ document.addEventListener('click', e => {
       if (!tarjetasActivas().length) { toast('Primero cargá tus tarjetas en Configuración.', 'bad', { label: 'Ir a Configuración', fn: () => go('config') }); break; }
       snapQA(); UI.qa.conTj = !UI.qa.conTj; render(); $('.qa .chip[data-act="qa-tj"]')?.focus(); break;
     }
+    case 'tema': setTema(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'); break;
     case 'qa-div': snapQA(); UI.qa.div = !UI.qa.div; render(); (UI.qa.div ? $('.qa input[name="divn"]') : $('.qa .chip[data-act="qa-div"]'))?.focus(); break;
     case 'tj-fechas': tarjetaFechasDialog(id); break;
     case 'tj-arch': { const t = tarjetaById(id); mutate(() => { t.archivada = !t.archivada; }); break; }
@@ -1507,6 +1642,7 @@ document.addEventListener('click', e => {
     case 'drive-connect': Drive.connect(); break;
     case 'drive-save': Drive.flush(); break;
     case 'drive-off': Drive.disconnect(); break;
+    case 'informe': descargarInforme(); break;
     case 'export-json': download(`brujula-datos-${HOY}.json`, JSON.stringify(DB, null, 1)); break;
     case 'export-csv': exportCSV(el.dataset.k); break;
     case 'import-click': $('#file-import').click(); break;
@@ -1639,13 +1775,21 @@ $('#file-import').addEventListener('change', async e => {
   } catch (err) { toast('No se pudo importar: ' + err.message, 'bad'); }
 });
 
+/* ============ Modo claro / oscuro ============ */
+function setTema(t) {
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('brujula:tema', t); } catch (e) { }
+  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', t);
+  const b = $('#tema-btn'); if (b) { b.setAttribute('aria-label', t === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'); b.title = b.getAttribute('aria-label'); }
+  if (UI.view === 'analisis') render();
+}
 /* ============ Inicio de la app ============ */
 (function init() {
   const local = loadLocal();
   if (local) { DB = local; HAS_DATA = true; } else { DB = normalizeDB({}); HAS_DATA = false; }
   $('#nav').innerHTML = NAV.map(([k, t]) => `<a href="#/${k}" data-view="${k}">${ic(k)}<span>${t}</span></a>`).join('');
   Drive.init();
-  document.body.classList.add('boot'); setTimeout(() => document.body.classList.remove('boot'), 1500);
+  setTema(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
   route();
 })();
 </script>
